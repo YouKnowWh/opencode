@@ -121,3 +121,14 @@ Keep an existing fork bundle before replacement. Restore that bundle after the
 fork exits, keeping `profiles/desktop` and both dedicated role keys unchanged.
 The official app is independent. Keep role-specific request credentials and
 memory-tool isolation. Never restore global-memory access as a rollback shortcut.
+
+### Installed desktop acceptance
+
+With explicit approval, the fork bundle was backed up, replaced and reopened.
+The Model Hub light UI and native upstream check visibly show v1.19.0. Actual
+GUI ARONA → PRANA → ARONA messages keep one session URL and recall the preceding
+reply. The UI reports approximately 2 / 6 / 2 seconds; these are displayed
+values, separate from the CLI wall-clock measurements above.
+
+The console management username/password has not been entered. Authenticated
+iframe management remains unverified. No browser credentials were extracted.
