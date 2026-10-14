@@ -1,6 +1,22 @@
 import { DESKTOP_NATIVE_ENGLISH } from "./desktop-native"
 
 export const dict = {
+  "modelhub.title": "Model Hub",
+  "modelhub.description": "Manage role models in one place. Changes apply to the next request.",
+  "modelhub.loginNotice":
+    "Sign in to your Model Hub console separately. Client keys stay on this device. Switching roles keeps this conversation and shares its history; long-term memory stays role-local.",
+  "modelhub.open": "Open Model Hub",
+  "modelhub.refresh": "Reload Model Hub",
+  "modelhub.browser": "Open Model Hub in browser",
+  "modelhub.username": "Console username",
+  "modelhub.password": "Console password",
+  "modelhub.loginRequired": "Enter the console username and password. Do not use a role API key.",
+  "modelhub.relogin": "Sign in again",
+  "modelhub.upstream": "Upstream releases",
+  "modelhub.upstreamNotice": "Latest upstream: {{version}}. Fork updates are reviewed and rebuilt separately.",
+  "modelhub.upstreamChecking": "Checking upstream version…",
+  "modelhub.upstreamFailed": "Unable to check upstream version. Try again later.",
+  "modelhub.releases": "Release notes",
   ...DESKTOP_NATIVE_ENGLISH,
   "command.category.suggested": "Suggested",
   "command.category.view": "View",

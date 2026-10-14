@@ -35,6 +35,7 @@ export default defineConfig({
   main: {
     define: {
       "import.meta.env.OPENCODE_CHANNEL": JSON.stringify(channel),
+      "import.meta.env.MODELHUB_BUILD": JSON.stringify(process.env.MODELHUB_BUILD === "1"),
     },
     build: {
       rollupOptions: {

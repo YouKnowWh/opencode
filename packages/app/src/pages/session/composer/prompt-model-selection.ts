@@ -1,18 +1,27 @@
-import { batch, createMemo, startTransition } from "solid-js"
+import { batch, createEffect, createMemo, startTransition } from "solid-js"
 import { useModels } from "@/context/models"
-import type { ModelKey, ModelSelection } from "@/context/local"
+import { useLocal, type ModelKey, type ModelSelection } from "@/context/local"
 import { cycleModelVariant, getConfiguredAgentVariant, resolveModelVariant } from "@/context/model-variant"
 import { usePrompt } from "@/context/prompt"
 import { useSDK } from "@/context/sdk"
 import { useSync } from "@/context/sync"
 import { useProviders } from "@/hooks/use-providers"
 import { resolveDefaultModel } from "@/hooks/provider-catalog"
+import { modelHubRole } from "@/modelhub/roles"
 
 export function createPromptModelSelection(input: { agent: () => { model?: ModelKey; variant?: string } | undefined }) {
   const sdk = useSDK()
   const sync = useSync()
   const models = useModels()
   const prompt = usePrompt()
+  const local = useLocal()
+  createEffect(() => {
+    const next = input.agent()?.model
+    if (!prompt.ready() || !modelHubRole(next) || !next) return
+    const current = prompt.model.current()
+    if (current?.providerID === next.providerID && current.modelID === next.modelID) return
+    prompt.model.set(next)
+  })
   const providers = useProviders(() => sdk().directory)
   const connected = createMemo(() => new Set(providers.connected().map((item) => item.id)))
 
@@ -65,6 +74,8 @@ export function createPromptModelSelection(input: { agent: () => { model?: Model
       if (next) selection.set({ providerID: next.provider.id, modelID: next.id })
     },
     set(item: ModelKey | undefined, options?: { recent?: boolean }) {
+      const role = modelHubRole(item)
+      if (role) local.agent.set(role)
       startTransition(() =>
         batch(() => {
           prompt.model.set(item ? { ...item, variant: prompt.model.current()?.variant } : undefined)

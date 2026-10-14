@@ -12,6 +12,8 @@ const updaterHandler = (_: unknown, state: UpdaterState) => {
 
 const api: ElectronAPI = {
   killSidecar: () => ipcRenderer.invoke("kill-sidecar"),
+  modelhubLogin: (value) => ipcRenderer.invoke("modelhub-login", value),
+  modelhubUpstreamVersion: () => ipcRenderer.invoke("modelhub-upstream-version"),
   installCli: () => ipcRenderer.invoke("install-cli"),
   awaitInitialization: () => ipcRenderer.invoke("await-initialization"),
   wslServers: {

@@ -29,6 +29,8 @@ export type FatalRendererErrorLog = {
 }
 
 type PlatformBase = {
+  modelhubLogin?(value: { username: string; password: string }): Promise<void>
+  modelhubUpstreamVersion?(): Promise<string>
   /** App version */
   version?: string
 

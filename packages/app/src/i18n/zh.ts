@@ -3,6 +3,22 @@ import { dict as en } from "./en"
 type Keys = keyof typeof en
 
 export const dict = {
+  "modelhub.title": "Model Hub",
+  "modelhub.description": "统一管理角色模型，修改后对下一次请求生效。",
+  "modelhub.loginNotice":
+    "请单独登录 Model Hub 控制台，客户端密钥保留在本机。切换角色保留当前会话与上文，长期记忆仍按角色隔离。",
+  "modelhub.open": "打开 Model Hub",
+  "modelhub.refresh": "刷新 Model Hub",
+  "modelhub.browser": "在浏览器打开 Model Hub",
+  "modelhub.username": "控制台用户名",
+  "modelhub.password": "控制台密码",
+  "modelhub.loginRequired": "请填写控制台用户名和密码，不要填写角色 API 密钥。",
+  "modelhub.relogin": "重新登录",
+  "modelhub.upstream": "上游版本",
+  "modelhub.upstreamNotice": "上游最新版本：{{version}}。fork 更新会单独审查、重新构建。",
+  "modelhub.upstreamChecking": "正在检查上游版本…",
+  "modelhub.upstreamFailed": "暂时无法检查上游版本，请稍后重试。",
+  "modelhub.releases": "版本说明",
   "desktop.menu.app": "OpenCode",
   "desktop.menu.file": "文件",
   "desktop.menu.edit": "编辑",

@@ -14,6 +14,7 @@ import { useDialog } from "@opencode-ai/ui/context/dialog"
 import { useLayout } from "@/context/layout"
 import { useTabs } from "@/context/tabs"
 import { useServerSync } from "@/context/server-sync"
+import { SettingsModelHub } from "./modelhub"
 
 export const DialogSettings: Component<{
   sessionID?: string
@@ -83,6 +84,10 @@ export const DialogSettings: Component<{
                       <Icon name="models" />
                       {language.t("settings.models.title")}
                     </TabsV2.Trigger>
+                    <TabsV2.Trigger value="modelhub">
+                      <Icon name="server" />
+                      {language.t("modelhub.title")}
+                    </TabsV2.Trigger>
                   </div>
                 </div>
               </div>
@@ -107,6 +112,9 @@ export const DialogSettings: Component<{
         </TabsV2.Content>
         <TabsV2.Content value="models" class="settings-v2-panel">
           <SettingsModelsV2 />
+        </TabsV2.Content>
+        <TabsV2.Content value="modelhub" class="settings-v2-panel">
+          <SettingsModelHub />
         </TabsV2.Content>
       </TabsV2>
     </Dialog>

@@ -43,6 +43,8 @@ export type FatalRendererError = {
 }
 
 export type ElectronAPI = {
+  modelhubLogin: (value: { username: string; password: string }) => Promise<void>
+  modelhubUpstreamVersion: () => Promise<string>
   killSidecar: () => Promise<void>
   installCli: () => Promise<string>
   awaitInitialization: () => Promise<ServerReadyData>

@@ -1,7 +1,7 @@
 import { execFile } from "node:child_process"
 import { stat } from "node:fs/promises"
 import { basename, join } from "node:path"
-import { app, BrowserWindow, clipboard, dialog, ipcMain, shell } from "electron"
+import { app, BrowserWindow, clipboard, dialog, ipcMain, shell, net } from "electron"
 import type { IpcMainEvent, IpcMainInvokeEvent } from "electron"
 import type { DesktopMenuAction } from "@opencode-ai/app/desktop-menu"
 import { parseDesktopNativeBundle, type DesktopNativeBundle } from "@opencode-ai/app/i18n/desktop-native"
@@ -24,6 +24,9 @@ import type { UpdaterController } from "./updater-controller"
 import { createUpdaterSubscriptions } from "./updater-subscriptions"
 import { createDesktopDraftStore } from "./draft-store"
 import { nativeT } from "./native-translations"
+import { modelHubLogin } from "./modelhub-login"
+import { isTrustedRendererUrl } from "./windows"
+import { upstreamVersion } from "../../../app/src/modelhub/upstream"
 
 const pickerFilters = (ext?: string[]) => {
   if (!ext || ext.length === 0) return undefined
@@ -249,6 +252,17 @@ export function registerIpcHandlers(deps: Deps) {
     const id = getWindowID(win)
     if (!id) throw new Error("Window ID not found")
     return id
+  })
+  ipcMain.handle("modelhub-login", async (event: IpcMainInvokeEvent, value: { username: string; password: string }) => {
+    if (!isTrustedRendererUrl(event.senderFrame?.url) || event.senderFrame !== event.sender.mainFrame)
+      throw new Error("Untrusted console login sender")
+    await event.sender.session.clearAuthCache()
+    modelHubLogin.set(event.sender.id, value)
+  })
+  ipcMain.handle("modelhub-upstream-version", (event: IpcMainInvokeEvent) => {
+    if (!isTrustedRendererUrl(event.senderFrame?.url) || event.senderFrame !== event.sender.mainFrame)
+      throw new Error("Untrusted update check sender")
+    return upstreamVersion((url, options) => net.fetch(url, options))
   })
 
   ipcMain.handle("get-window-focused", (event: IpcMainInvokeEvent) => {

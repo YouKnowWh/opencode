@@ -8,6 +8,17 @@ const channels = [
   { channel: "beta", appId: "ai.opencode.desktop.beta" },
   { channel: "prod", appId: "ai.opencode.desktop" },
 ] as const
+test("Model Hub build has its own identity and no official installer feed", async () => {
+  const old = process.env.MODELHUB_BUILD
+  process.env.MODELHUB_BUILD = "1"
+  const config = (await import("./electron-builder.config.ts?modelhub")).default as Configuration
+  if (old === undefined) delete process.env.MODELHUB_BUILD
+  else process.env.MODELHUB_BUILD = old
+  expect(config.appId).toBe("ai.modelhub.opencode")
+  expect(config.productName).toBe("OpenCode Model Hub")
+  expect(config.publish).toBeNull()
+  expect(config.mac?.notarize).toBe(false)
+})
 
 for (const channel of channels) {
   test(`uses one Linux desktop identity for ${channel.channel}`, async () => {

@@ -16,6 +16,7 @@ import { nativeT } from "./native-translations"
 import { createWindowRegistry } from "./window-registry"
 import { safeWindowURL } from "./window-state"
 import { resolveExternalURL, resolveLocalFilePath } from "./external-url"
+import { modelHubLogin, isModelHubDocument } from "./modelhub-login"
 
 const root = dirname(fileURLToPath(import.meta.url))
 const rendererRoot = join(root, "../renderer")
@@ -207,6 +208,15 @@ export function createMainWindow(id: string = randomUUID()) {
   allowRendererPermissions(win)
   wireWindowRecovery(win, id)
   wireNavigationPolicy(win)
+  const modelHubOwner = win.webContents.id
+  win.webContents.on("login", (event, details, auth, callback) => {
+    if (!isModelHubDocument(details.url)) return
+    event.preventDefault()
+    const credential = modelHubLogin.take(win.webContents.id, details.url, auth.isProxy, auth.scheme)
+    if (credential) callback(credential.username, credential.password)
+    if (!credential) callback()
+  })
+  win.on("closed", () => modelHubLogin.clear(modelHubOwner))
 
   win.webContents.session.webRequest.onBeforeSendHeaders((details, callback) => {
     const { requestHeaders } = details
@@ -484,18 +494,23 @@ function allowRendererPermissions(win: BrowserWindow) {
   win.webContents.session.setPermissionRequestHandler((webContents, permission, callback, details) => {
     callback(
       rendererPermissions.has(permission) &&
-        isTrustedRendererUrl(details.requestingUrl) &&
+        (isTrustedRendererUrl(details.requestingUrl) ||
+          (permission === clipboardWritePermission && isModelHubDocument(details.requestingUrl))) &&
         webContents.id === webContentsId,
     )
   })
   win.webContents.session.setPermissionCheckHandler((webContents, permission, requestingOrigin, details) => {
     if (!rendererPermissions.has(permission)) return false
     if (webContents && webContents.id !== webContentsId) return false
-    return isTrustedRendererUrl(details.requestingUrl) || isTrustedRendererUrl(requestingOrigin)
+    return (
+      isTrustedRendererUrl(details.requestingUrl) ||
+      isTrustedRendererUrl(requestingOrigin) ||
+      (permission === clipboardWritePermission && isModelHubDocument(details.requestingUrl))
+    )
   })
 }
 
-function isTrustedRendererUrl(value?: string) {
+export function isTrustedRendererUrl(value?: string) {
   return isRendererUrl(value)
 }
 

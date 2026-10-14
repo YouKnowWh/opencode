@@ -345,3 +345,10 @@ describe("layout workspace helpers", () => {
     expect(errorMessage("unknown", "fallback")).toBe("fallback")
   })
 })
+
+test("Model Hub deep links use the separate protocol", () => {
+  expect(parseDeepLink("modelhub-opencode://open-project?directory=/tmp/demo")).toBe("/tmp/demo")
+  expect(parseNewSessionDeepLink("modelhub-opencode://new-session?directory=/tmp/demo")).toEqual({
+    directory: "/tmp/demo",
+  })
+})

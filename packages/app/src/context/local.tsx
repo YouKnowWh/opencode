@@ -14,6 +14,7 @@ import { useSDK } from "./sdk"
 import { useSync } from "./sync"
 import { useServerSDK } from "./server-sdk"
 import { ScopedKey, type ServerScope } from "@/utils/server-scope"
+import { modelHubRole } from "@/modelhub/roles"
 
 export type ModelKey = { providerID: string; modelID: string; variant?: string }
 
@@ -69,7 +70,12 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
 
     const id = createMemo(() => params.id || undefined)
     const list = createMemo(() => sync().data.agent.filter((item) => item.mode !== "subagent" && !item.hidden))
-    const agentsVisible = createMemo(() => settings.visibility.customAgents() || hasCustomAgent(list()))
+    const agentsVisible = createMemo(
+      () =>
+        settings.visibility.customAgents() ||
+        hasCustomAgent(list()) ||
+        list().some((item) => !!modelHubRole(item.model)),
+    )
     const connected = createMemo(() => new Set(providers.connected().map((item) => item.id)))
 
     const [saved, setSaved, , savedReady] = persisted(
@@ -299,6 +305,8 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
         model.set({ providerID: entry.provider.id, modelID: entry.id })
       },
       set(item: ModelKey | undefined, options?: { recent?: boolean }) {
+        const role = modelHubRole(item)
+        if (role) agent.set(role)
         startTransition(() =>
           batch(() => {
             setStore("last", {
