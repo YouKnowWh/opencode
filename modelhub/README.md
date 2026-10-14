@@ -3,7 +3,9 @@
 This opt-in desktop fork is based on upstream OpenCode **v1.19.0**
 (`733b2c627e5aec39cb33cc22373bdce33053ef2c`). The upstream MIT license remains
 unchanged. `origin` is the personal fork; `upstream` is `anomalyco/opencode`.
-The PR targets the pinned `modelhub-base` branch, not the moving upstream `dev`.
+This fork is independently maintained and is not produced by or affiliated with
+the OpenCode team. Compare `modelhub-desktop` against the pinned `modelhub-base`
+branch; use that same base for a future PR, not the moving upstream `dev`.
 
 ## Behavior
 
@@ -16,12 +18,18 @@ The PR targets the pinned `modelhub-base` branch, not the moving upstream `dev`.
   the selected role; long-term memory retrieval and proposals remain role-local.
   A persisted selection is a convenience, not a lifetime authorization boundary.
 - Read/search memory tools use the executing role's key; memory proposals need
-  permission and remain subject to server review. Auxiliary title/summary calls
-  remain on that session's provider.
+  permission and remain subject to server review. Each memory call requires its
+  host-provided `ctx.extra.model` to match `ctx.agent`; missing or mismatched
+  execution identities are rejected before a memory request is sent. An in-flight
+  tool keeps the role of the request that started it even after a role switch.
+  Auxiliary title/summary calls follow their own request's provider and do not
+  change the persisted role selection.
 - The management login is separate from chat credentials. Credentials entered
   into the login form are held only in main-process memory and used for the
   window's HTTPS console Basic-auth challenge. They are not persisted by this
-  addon or passed to model requests. Electron may cache authenticated connections.
+  addon or passed to model requests. Electron may cache authenticated connections;
+  signing in again clears its HTTP authentication cache before registering the
+  replacement credentials.
 - The fork has a separate app ID and data directories. It does not migrate the
   official client's data automatically or install official updates over itself.
   The Model Hub pane can check upstream releases; adopting an update requires a
@@ -39,14 +47,19 @@ Existing, separately provisioned keys are read from:
 Each contains `role` and `key`. Files must belong to the current user and have
 mode `0600`; directories must have mode `0700`. Never commit these files or paste
 them in an issue. The combined desktop profile is created under `profiles/desktop`
-with isolated config, data, cache, state and durable session bindings. Project
-configuration is disabled. Bootstrap regenerates its managed configuration;
+with isolated config, data, cache, state and persisted current-role selection.
+Project configuration is disabled. Bootstrap regenerates its managed configuration;
 manual edits to that configuration are not an extension-management interface.
 `32768`/`4096` limits are conservative client defaults, not measured capabilities.
 
 The role key environment variables are removed from tool-shell environments.
 This is **not an operating-system sandbox**: allowed file/shell tools can still
 access user-owned files. Review tool permissions accordingly.
+
+Bootstrap copies the locked plugin manifest and lockfile into the managed
+configuration directory. Fork startup clears inherited OpenCode overrides and
+uses the v1 sidecar; inherited v2-service and test-onboarding flags cannot select
+the official client's background service or substitute temporary test storage.
 
 ## One-shot checks and macOS build
 
@@ -57,7 +70,7 @@ installed separately if workspace dependency scripts were disabled.
 ```sh
 cd packages/app
 bun typecheck
-bun test --conditions=solid --preload ./happydom.ts ./src/modelhub ./src/context/local-agent.test.ts ./src/context/model-variant.test.ts ./src/context/tabs.test.ts
+bun test --conditions=solid --preload ./happydom.ts ./src/modelhub ./src/context/local-agent.test.ts ./src/context/model-variant.test.ts ./src/context/tabs.test.ts ./src/pages/layout/helpers.test.ts
 cd ../desktop
 bun typecheck
 bun test ./src/main/modelhub-login.test.ts ./electron-builder.config.test.ts
@@ -80,20 +93,31 @@ and unnotarized; this is not an official signed release.
 
 ## Acceptance boundaries
 
-Real ARONA and PRANA CLI requests and same-session role handoff have
-been observed. Unit checks cover role/draft isolation, durable selection,
-same-session handoff, per-execution memory credentials, scoped console login
-  and packaging identity.
-Production builds were checked on macOS arm64 only.
+On 2026-10-14, real CLI requests completed an ARONA → PRANA → ARONA handoff
+within one session, with the complete prior conversation available on each
+handoff. Separate PRANA and ARONA `memory_search`/`memory_read` runs completed
+in 32.05 s and 6.677 s respectively. These are individual CLI-run durations,
+not service latency benchmarks or GUI measurements.
 
-Desktop console authentication, live role-handoff/send in the GUI, Windows/Linux,
-history migration and a plugins/Skills configuration manager remain unverified
-or unimplemented. CLI success does not establish GUI acceptance. No server code
-deployment or legacy extraction-error repair is included in this fork.
+The one-shot checks above passed 54 app tests, 10 desktop tests and 3 addon
+Node tests: **67 tests in total**. App and desktop type checks also passed.
+These checks cover role recognition and selection, request/tool identity guards,
+per-execution memory credentials, scoped console login, the separate deep-link
+protocol and packaging identity. The login checks use unit inputs rather than
+a live console. Production builds were checked on macOS arm64 only.
+
+The rebuilt bundle has **not been activated**. Desktop console authentication
+and live role handoff/send in the GUI remain unverified; the current desktop
+tool-permission prompt awaits the user's response. Passing CLI and unit checks
+does not establish desktop acceptance.
+
+Windows/Linux, history migration and a plugins/Skills configuration manager
+remain unverified or unimplemented. No server code deployment or legacy
+extraction-error repair is included in this fork.
 
 ## Rollback
 
 Keep an existing fork bundle before replacement. Restore that bundle after the
 fork exits, keeping `profiles/desktop` and both dedicated role keys unchanged.
-The official app is independent. Keep role-specific request credentials and memory-tool isolation. Never restore
-global-memory access as a rollback shortcut.
+The official app is independent. Keep role-specific request credentials and
+memory-tool isolation. Never restore global-memory access as a rollback shortcut.

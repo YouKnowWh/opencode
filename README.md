@@ -43,6 +43,8 @@
 
 ---
 
+This branch includes an opt-in [Model Hub desktop fork](modelhub/README.md), maintained independently from the OpenCode team. See its setup and verification limits, plus the [fork changelog](modelhub/CHANGELOG.md).
+
 ### Installation
 
 ```bash

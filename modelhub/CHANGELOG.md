@@ -2,7 +2,7 @@
 
 ## 0.1.0 — 2026-10-14
 
-- Integrate the unified server console in desktop settings with a light theme.
+- Open the unified server console from desktop settings in a light theme.
 - Allow ARONA/PRANA handoff within the same project and conversation, sharing its
   history with explicit user authorization while keeping memory credentials local
   to the executing role.
