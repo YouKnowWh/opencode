@@ -1,43 +1,40 @@
 import { createStore } from "solid-js/store"
-import { Show, onMount } from "solid-js"
+import { Show, onMount, onCleanup } from "solid-js"
 import { useLanguage } from "@/context/language"
 import { MODEL_HUB_URL } from "@/modelhub/roles"
 import { usePlatform } from "@/context/platform"
 import { upstreamVersion } from "@/modelhub/upstream"
+import { createModelHubConsole } from "@/modelhub/console"
 import "./modelhub.css"
 
 export function SettingsModelHub() {
   const language = useLanguage()
   const platform = usePlatform()
-  const [state, setState] = createStore({
-    opened: false,
-    revision: 0,
-    username: "",
-    password: "",
-    error: false,
+  const console = createModelHubConsole(platform.modelhubLogin)
+  const state = console.state
+  const setState = console.setState
+  const [version, setVersion] = createStore({
     upstream: "",
     checking: false,
     upstreamFailed: false,
   })
   const checkUpstream = async () => {
-    setState({ checking: true, upstreamFailed: false })
+    setVersion({ checking: true, upstreamFailed: false })
     await (platform.modelhubUpstreamVersion ? platform.modelhubUpstreamVersion() : upstreamVersion())
-      .then((upstream) => setState("upstream", upstream))
-      .catch(() => setState("upstreamFailed", true))
-    setState("checking", false)
+      .then((upstream) => setVersion("upstream", upstream))
+      .catch(() => setVersion("upstreamFailed", true))
+    setVersion("checking", false)
   }
-  onMount(() => void checkUpstream())
-  const open = async () => {
-    setState("error", false)
-    if (platform.modelhubLogin) {
-      if (!state.username || !state.password) {
-        setState("error", true)
-        return
-      }
-      await platform.modelhubLogin({ username: state.username, password: state.password })
-    }
-    setState({ opened: true, password: "" })
-  }
+  onMount(() => {
+    void checkUpstream()
+    const unsubscribe = platform.onModelhubError?.((error) => {
+      if (state.opened) console.fail(error)
+    })
+    onCleanup(() => {
+      unsubscribe?.()
+      console.dispose()
+    })
+  })
   return (
     <div data-component="modelhub-settings">
       <div class="mh-header">
@@ -50,7 +47,7 @@ export function SettingsModelHub() {
             type="button"
             title={language.t("modelhub.upstream")}
             aria-label={language.t("modelhub.upstream")}
-            disabled={state.checking}
+            disabled={version.checking}
             onClick={() => void checkUpstream()}
           >
             {language.t("modelhub.upstream")}
@@ -60,7 +57,7 @@ export function SettingsModelHub() {
             title={language.t("modelhub.refresh")}
             disabled={!state.opened}
             aria-label={language.t("modelhub.refresh")}
-            onClick={() => setState("revision", state.revision + 1)}
+            onClick={console.refresh}
           >
             ↻
           </button>
@@ -76,10 +73,10 @@ export function SettingsModelHub() {
       </div>
       <div class="mh-version" aria-live="polite">
         <span>
-          {state.upstreamFailed
+          {version.upstreamFailed
             ? language.t("modelhub.upstreamFailed")
-            : state.upstream
-              ? language.t("modelhub.upstreamNotice", { version: state.upstream })
+            : version.upstream
+              ? language.t("modelhub.upstreamNotice", { version: version.upstream })
               : language.t("modelhub.upstreamChecking")}
         </span>
         <button
@@ -93,17 +90,18 @@ export function SettingsModelHub() {
       <Show
         when={state.opened}
         fallback={
-          <div class="mh-login">
+          <div class="mh-login" aria-busy={state.busy}>
             <p>{language.t("modelhub.loginNotice")}</p>
             <Show when={platform.modelhubLogin}>
               <form
                 onSubmit={(event) => {
                   event.preventDefault()
-                  void open().catch(() => setState("error", true))
+                  void console.open()
                 }}
               >
                 <input
                   autocomplete="username"
+                  disabled={state.busy}
                   value={state.username}
                   placeholder={language.t("modelhub.username")}
                   aria-label={language.t("modelhub.username")}
@@ -112,6 +110,7 @@ export function SettingsModelHub() {
                 <input
                   type="password"
                   autocomplete="current-password"
+                  disabled={state.busy}
                   value={state.password}
                   placeholder={language.t("modelhub.password")}
                   aria-label={language.t("modelhub.password")}
@@ -119,27 +118,36 @@ export function SettingsModelHub() {
                 />
                 <Show when={state.error}>
                   <p role="alert" class="text-sm text-red-500">
-                    {language.t("modelhub.loginRequired")}
+                    {language.t(
+                      state.error === "invalid" ? "modelhub.loginRequired" : `modelhub.error.${state.error!}`,
+                    )}
                   </p>
                 </Show>
-                <button type="submit" class="mh-primary">
-                  {language.t("modelhub.open")}
+                <button type="submit" class="mh-primary" disabled={state.busy}>
+                  {language.t(state.busy ? "modelhub.signingIn" : "modelhub.open")}
                 </button>
               </form>
             </Show>
             <Show when={!platform.modelhubLogin}>
-              <button type="button" class="mh-primary" onClick={() => void open()}>
+              <button type="button" class="mh-primary" onClick={() => void console.open()}>
                 {language.t("modelhub.open")}
               </button>
             </Show>
           </div>
         }
       >
+        <Show when={state.loading}>
+          <p class="mh-loading" role="status">
+            {language.t("modelhub.loading")}
+          </p>
+        </Show>
         <Show keyed when={state.revision + 1}>
           {(revision) => (
             <iframe
               data-revision={revision}
               src={MODEL_HUB_URL}
+              onLoad={console.loaded}
+              onError={() => console.fail("network")}
               title={language.t("modelhub.title")}
               referrerPolicy="no-referrer"
               sandbox="allow-scripts allow-forms allow-same-origin allow-downloads"
@@ -149,7 +157,7 @@ export function SettingsModelHub() {
         </Show>
       </Show>
       <Show when={state.opened && platform.modelhubLogin}>
-        <button class="mh-link mh-relogin" type="button" onClick={() => setState("opened", false)}>
+        <button class="mh-link mh-relogin" type="button" onClick={console.reset}>
           {language.t("modelhub.relogin")}
         </button>
       </Show>

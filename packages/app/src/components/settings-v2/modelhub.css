@@ -150,3 +150,9 @@
     padding: 10px 16px;
   }
 }
+
+[data-component="modelhub-settings"] .mh-loading {
+  padding: 12px 28px;
+  color: #65768b;
+  font-size: 13px;
+}

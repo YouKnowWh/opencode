@@ -18,3 +18,6 @@
 - Make the native app the everyday entry and retire Terminal-based `.command`
   launchers; optional CLI launch delegates to macOS Launch Services.
 - Clarify the separate official/fork apps and the app-managed local backend.
+- Verify console credentials before opening the embedded HUB; show specific
+  authentication, connection, server and timeout errors with a retry form.
+- Handle failed embedded-console navigation instead of leaving a blank panel.

@@ -13,6 +13,11 @@ const updaterHandler = (_: unknown, state: UpdaterState) => {
 const api: ElectronAPI = {
   killSidecar: () => ipcRenderer.invoke("kill-sidecar"),
   modelhubLogin: (value) => ipcRenderer.invoke("modelhub-login", value),
+  onModelhubError: (callback) => {
+    const handler = (_: unknown, error: Parameters<typeof callback>[0]) => callback(error)
+    ipcRenderer.on("modelhub-load-error", handler)
+    return () => ipcRenderer.removeListener("modelhub-load-error", handler)
+  },
   modelhubUpstreamVersion: () => ipcRenderer.invoke("modelhub-upstream-version"),
   installCli: () => ipcRenderer.invoke("install-cli"),
   awaitInitialization: () => ipcRenderer.invoke("await-initialization"),

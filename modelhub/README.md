@@ -24,12 +24,16 @@ branch; use that same base for a future PR, not the moving upstream `dev`.
   tool keeps the role of the request that started it even after a role switch.
   Auxiliary title/summary calls follow their own request's provider and do not
   change the persisted role selection.
-- The management login is separate from chat credentials. Credentials entered
-  into the login form are held only in main-process memory and used for the
-  window's HTTPS console Basic-auth challenge. They are not persisted by this
-  addon or passed to model requests. Electron may cache authenticated connections;
-  signing in again clears its HTTP authentication cache before registering the
-  replacement credentials.
+- The management login is separate from chat credentials. A native HTTPS request
+  verifies the console login before the iframe opens. It uses only the fixed
+  `/hub/` URL, follows no redirects, and sends no cookies. Rejected credentials,
+  denied access, network errors, server errors and timeouts return to the login
+  form with a specific message. The username stays; the password is cleared.
+  Subframe HTTP/load errors also return to the form, and a loading deadline
+  prevents an indefinitely blank panel. Credentials remain in main-process memory
+  only until the window's console Basic-auth challenge consumes them; they are
+  not persisted by the addon or passed to model requests. Signing in again clears
+  Electron's HTTP authentication cache before verifying replacement credentials.
 - The fork has a separate app ID and data directories. It does not migrate the
   official client's data automatically or install official updates over itself.
   The Model Hub pane can check upstream releases; adopting an update requires a

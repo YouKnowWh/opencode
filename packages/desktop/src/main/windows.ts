@@ -16,7 +16,7 @@ import { nativeT } from "./native-translations"
 import { createWindowRegistry } from "./window-registry"
 import { safeWindowURL } from "./window-state"
 import { resolveExternalURL, resolveLocalFilePath } from "./external-url"
-import { modelHubLogin, isModelHubDocument } from "./modelhub-login"
+import { modelHubLogin, isModelHubDocument, modelHubHttpError } from "./modelhub-login"
 
 const root = dirname(fileURLToPath(import.meta.url))
 const rendererRoot = join(root, "../renderer")
@@ -215,6 +215,18 @@ export function createMainWindow(id: string = randomUUID()) {
     const credential = modelHubLogin.take(win.webContents.id, details.url, auth.isProxy, auth.scheme)
     if (credential) callback(credential.username, credential.password)
     if (!credential) callback()
+  })
+  win.webContents.on("did-frame-navigate", (_event, url, status, _text, isMainFrame) => {
+    if (isMainFrame || !isModelHubDocument(url)) return
+    const error = modelHubHttpError(status)
+    if (!error) return
+    modelHubLogin.clear(modelHubOwner)
+    win.webContents.send("modelhub-load-error", error)
+  })
+  win.webContents.on("did-fail-load", (_event, code, _description, url, isMainFrame) => {
+    if (isMainFrame || code === -3 || !isModelHubDocument(url)) return
+    modelHubLogin.clear(modelHubOwner)
+    win.webContents.send("modelhub-load-error", code === -7 ? "timeout" : "network")
   })
   win.on("closed", () => modelHubLogin.clear(modelHubOwner))
 

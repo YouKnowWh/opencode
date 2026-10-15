@@ -257,7 +257,7 @@ export function registerIpcHandlers(deps: Deps) {
     if (!isTrustedRendererUrl(event.senderFrame?.url) || event.senderFrame !== event.sender.mainFrame)
       throw new Error("Untrusted console login sender")
     await event.sender.session.clearAuthCache()
-    modelHubLogin.set(event.sender.id, value)
+    return modelHubLogin.set(event.sender.id, value, (url, options) => net.fetch(url, options))
   })
   ipcMain.handle("modelhub-upstream-version", (event: IpcMainInvokeEvent) => {
     if (!isTrustedRendererUrl(event.senderFrame?.url) || event.senderFrame !== event.sender.mainFrame)

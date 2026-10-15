@@ -1,3 +1,4 @@
+import type { ModelHubLoginResult, ModelHubLoginError } from "../../../app/src/modelhub/login"
 import type { DesktopMenuAction } from "@opencode-ai/app/desktop-menu"
 import type { WslServersPlatform } from "@opencode-ai/app/wsl/types"
 import type { UpdaterState } from "@opencode-ai/app/updater"
@@ -43,7 +44,8 @@ export type FatalRendererError = {
 }
 
 export type ElectronAPI = {
-  modelhubLogin: (value: { username: string; password: string }) => Promise<void>
+  modelhubLogin: (value: { username: string; password: string }) => Promise<ModelHubLoginResult>
+  onModelhubError: (callback: (error: ModelHubLoginError) => void) => () => void
   modelhubUpstreamVersion: () => Promise<string>
   killSidecar: () => Promise<void>
   installCli: () => Promise<string>
