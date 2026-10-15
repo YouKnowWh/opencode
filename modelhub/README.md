@@ -126,14 +126,10 @@ a live console. Production builds were checked on macOS arm64 only.
 
 For the login-recovery fix (`f82f8ba`, 2026-10-15), 59 app tests and 15 desktop
 tests passed: **74 related tests**, along with both package type checks.
-The production build and macOS arm64 packaging succeeded. This repair bundle
-has **not been activated** and awaits explicit user authorization. Rejected-login
-retry, iframe recovery and successful console authentication have not been
-verified in the newly built app.
-
-The previously installed fork's GUI handoff was verified as recorded below;
-that earlier acceptance does not verify this login fix. CLI and unit checks
-alone do not establish desktop acceptance.
+The production build and macOS arm64 packaging succeeded. With explicit user
+authorization, the previous fork was backed up and the repair bundle was installed
+and reopened through the native app. The installed-app checks below distinguish the earlier role
+handoff from the newer rejected-login check; each verifies only its tested flow.
 
 Windows/Linux, history migration and a plugins/Skills configuration manager
 remain unverified or unimplemented. No server code deployment or legacy
@@ -156,3 +152,21 @@ values, separate from the CLI wall-clock measurements above.
 
 Successful authenticated iframe management remains unverified. No browser
 credentials were extracted.
+
+### Login-recovery desktop acceptance — 2026-10-15
+
+The installed `app.asar` SHA256 matches the build:
+`66fec459d68bfef23ddbd8a0fa6d5cc7e69e78fbac545d5441c9520bec755b03`.
+The separate official OpenCode app remained running unchanged.
+
+In Settings → Model Hub, one fabricated username/password pair was submitted
+once. The app displayed “用户名或密码错误，请重新输入。”, retained the username,
+cleared the password and left the Open Model Hub button available. No iframe
+was mounted. The upstream version check displayed v1.19.0.
+
+This confirms the rejected-credentials flow in the installed repair bundle.
+Successful administrator login remains unverified. Access-denied, network,
+server-error, timeout and iframe-load-failure paths have unit-test coverage,
+but were not exercised in this installed-app check. No saved administrator
+credentials were read or changed. Screenshots, accessibility output and bundle
+backups are retained privately and are not included in the repository.
