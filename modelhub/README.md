@@ -157,7 +157,13 @@ sign out, forbidden access deleting a saved account, and JSON errors leaking raw
 response text. The latter also passed a Node 24 runtime check.
 
 These are synthetic/offline checks, including injected encryption in vault tests.
-The new build is not yet installed or activated. Real OS secure storage,
+The new build was backed up, installed and opened with explicit user approval.
+The installed `app.asar` matches the packaged SHA256
+`f8d9dd31b187dfc75ac09df84ba1f2d247432c421c688faf4479cc43b3103232`.
+The titlebar account entry, native Account page with Remember login checked, and
+native Model Hub page are visible; the official OpenCode process remains running.
+Private screenshots and accessibility evidence are retained outside Git.
+The app is at the account form awaiting the user's own login. Real OS secure storage,
 correct-password persistent login, application relaunch, multiple windows and
 authenticated native model changes require installed-app acceptance. No server
 was accessed over SSH and no production memory was modified in this change.
