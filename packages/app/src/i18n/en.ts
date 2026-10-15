@@ -1,6 +1,34 @@
 import { DESKTOP_NATIVE_ENGLISH } from "./desktop-native"
 
 export const dict = {
+  "modelhub.account": "Account",
+  "modelhub.signIn": "Sign in",
+  "modelhub.signOut": "Sign out",
+  "modelhub.remember": "Stay signed in after restarting",
+  "modelhub.accountScope": "One Model Hub account for all projects and windows. Role memory remains isolated.",
+  "modelhub.secureStorageNotice":
+    "Saved credentials use operating-system encryption. Signing out removes the saved login.",
+  "modelhub.remembered": "Signed in across projects and windows. Login restores after restarting this client.",
+  "modelhub.desktopRequired": "Account sign-in is available in the desktop client.",
+  "modelhub.roleModels": "Role models",
+  "modelhub.chooseModel": "Model for {{role}}",
+  "modelhub.unconfigured": "Not configured",
+  "modelhub.applyRoleModel": "Apply to new requests from all clients of this role",
+  "modelhub.syncModels": "Model catalogue",
+  "modelhub.modelScope":
+    "Only models already allowed for each role are shown. Changes apply to every client using that role.",
+  "modelhub.managementFailed":
+    "Unable to load or save Model Hub settings. Check the connection, permissions and allowed models, then retry.",
+  "modelhub.management": "Management",
+  "modelhub.console": "Advanced console",
+  "modelhub.consoleDescription":
+    "Manage providers, model permissions, keys, usage and memory in the existing server console.",
+  "modelhub.upstreamDescription":
+    "Check the official OpenCode release. Fork updates are reviewed and rebuilt separately.",
+  "modelhub.checkUpdates": "Check",
+  "modelhub.refreshModels": "Refresh",
+  "modelhub.error.storage":
+    "Could not securely save or clear the login. Check the system credential store, or sign in without remembering it.",
   "modelhub.title": "Model Hub",
   "modelhub.description": "Manage role models in one place. Changes apply to the next request.",
   "modelhub.loginNotice":

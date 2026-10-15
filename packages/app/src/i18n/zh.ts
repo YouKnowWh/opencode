@@ -3,6 +3,28 @@ import { dict as en } from "./en"
 type Keys = keyof typeof en
 
 export const dict = {
+  "modelhub.account": "账户",
+  "modelhub.signIn": "登录",
+  "modelhub.signOut": "退出登录",
+  "modelhub.remember": "重启后保持登录",
+  "modelhub.accountScope": "所有项目与窗口共用一个 Model Hub 账户，角色记忆仍相互隔离。",
+  "modelhub.secureStorageNotice": "登录凭据由操作系统加密保存，退出登录会清除本机保存的登录信息。",
+  "modelhub.remembered": "已在所有项目与窗口登录，重启客户端后可恢复登录。",
+  "modelhub.desktopRequired": "请在桌面客户端中登录账户。",
+  "modelhub.roleModels": "角色模型",
+  "modelhub.chooseModel": "{{role}} 使用的模型",
+  "modelhub.unconfigured": "待配置",
+  "modelhub.applyRoleModel": "对使用此角色的所有客户端的新请求生效",
+  "modelhub.syncModels": "模型目录",
+  "modelhub.modelScope": "只显示角色已获准使用的模型；更改会对该角色的所有客户端生效。",
+  "modelhub.managementFailed": "无法加载或保存 Model Hub 设置，请检查连接、权限与角色可用模型后重试。",
+  "modelhub.management": "管理",
+  "modelhub.console": "高级控制台",
+  "modelhub.consoleDescription": "在现有服务器控制台管理供应商、模型权限、密钥、用量与记忆。",
+  "modelhub.upstreamDescription": "检查 OpenCode 官方版本；fork 更新会单独审查、重新构建。",
+  "modelhub.checkUpdates": "检查",
+  "modelhub.refreshModels": "刷新",
+  "modelhub.error.storage": "无法安全保存或清除登录信息。请检查系统凭据存储，或取消保持登录后重试。",
   "modelhub.title": "Model Hub",
   "modelhub.description": "统一管理角色模型，修改后对下一次请求生效。",
   "modelhub.loginNotice":

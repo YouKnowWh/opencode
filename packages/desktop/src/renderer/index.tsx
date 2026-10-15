@@ -167,6 +167,7 @@ const createPlatform = (windowState: DesktopWindowState): Platform => {
 
   return {
     platform: "desktop",
+    modelhubAccount: window.api.modelhubAccount,
     modelhubLogin: (value) => window.api.modelhubLogin(value),
     onModelhubError: (callback) => window.api.onModelhubError(callback),
     modelhubUpstreamVersion: () => window.api.modelhubUpstreamVersion(),

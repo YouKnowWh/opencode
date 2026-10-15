@@ -9,8 +9,8 @@ branch; use that same base for a future PR, not the moving upstream `dev`.
 
 ## Behavior
 
-- Settings → Model Hub opens the existing server console; model routing remains
-  managed there. A role's real-model change applies to subsequent requests from
+- Settings → Model Hub uses OpenCode's native v2 settings rows and model selectors.
+  The server console opens only on demand for advanced management. A role's real-model change applies to subsequent requests from
   **all clients of that role**, not just this desktop window.
 - ARONA uses Chat Completions; PRANA uses native Responses. Each has its own key.
 - Changing roles keeps the same project and conversation. The user explicitly
@@ -24,16 +24,27 @@ branch; use that same base for a future PR, not the moving upstream `dev`.
   tool keeps the role of the request that started it even after a role switch.
   Auxiliary title/summary calls follow their own request's provider and do not
   change the persisted role selection.
-- The management login is separate from chat credentials. A native HTTPS request
-  verifies the console login before the iframe opens. It uses only the fixed
-  `/hub/` URL with a 15-second timeout, follows no redirects, and sends no cookies.
-  Rejected credentials, denied access, network errors, server errors and timeouts return to the login
-  form with a specific message. The username stays; the password is cleared.
-  Subframe HTTP/load errors also return to the form, and a 20-second loading
-  deadline prevents an indefinitely blank panel. Credentials remain in main-process memory
-  only until the window's console Basic-auth challenge consumes them; they are
-  not persisted by the addon or passed to model requests. Signing in again clears
-  Electron's HTTP authentication cache before verifying replacement credentials.
+- The management account is global across projects, settings mounts and windows,
+  separate from role chat keys. The titlebar account entry and Settings → Account
+  share the same state. Remembering login restores it after application restart;
+  only Electron safeStorage ciphertext is saved, with private file permissions and
+  atomic replacement. There is no plaintext or Linux `basic_text` fallback. A
+  storage failure is visible rather than reported as a remembered login.
+- Native HTTPS verifies the fixed `/hub/` document with a 15-second timeout,
+  no redirects and no cookies. Typed errors preserve the username and clear the
+  form password. Restored credentials are verified again; offline/403 failures
+  retain the encrypted record, while rejected authentication removes it. Sign out
+  clears shared memory, the encrypted file and Electron's Hub auth cache/storage.
+  A late startup/login result cannot undo sign out. An offline saved account can
+  also be explicitly cleared. Main-process credentials never enter model requests
+  or renderer account state; form input is sent only through the trusted bridge.
+- Native role-model controls expose only the safe role/model projection and allow
+  authorized LLM selection. The fixed role settings API preserves embedding,
+  ranker, timeout, concurrency, budget and remaining fallback targets. It does not
+  grant new models. Management response size is bounded and raw response errors
+  are discarded. Advanced console frames receive one scoped Basic challenge;
+  closing settings or a window does not sign out the global account. A 20-second
+  loading deadline still prevents an indefinitely blank embedded panel.
 - The fork has a separate app ID and data directories. It does not migrate the
   official client's data automatically or install official updates over itself.
   The Model Hub pane can check upstream releases; adopting an update requires a
@@ -90,7 +101,7 @@ bun typecheck
 bun test --conditions=solid --preload ./happydom.ts ./src/modelhub ./src/context/local-agent.test.ts ./src/context/model-variant.test.ts ./src/context/tabs.test.ts ./src/pages/layout/helpers.test.ts
 cd ../desktop
 bun typecheck
-bun test ./src/main/modelhub-login.test.ts ./electron-builder.config.test.ts
+bun test ./src/main/modelhub-login.test.ts ./src/main/modelhub-account.test.ts ./src/main/modelhub-vault.test.ts ./src/main/modelhub-management.test.ts ./electron-builder.config.test.ts
 cd ../../modelhub
 node --test bindings.test.mjs plugin.test.mjs
 node launch.mjs --config-check
@@ -134,6 +145,22 @@ handoff from the newer rejected-login check; each verifies only its tested flow.
 Windows/Linux, history migration and a plugins/Skills configuration manager
 remain unverified or unimplemented. No server code deployment or legacy
 extraction-error repair is included in this fork.
+
+### Global account and native settings — 2026-10-16
+
+Fresh checks pass **59 app + 35 desktop = 94 related tests**, plus both package
+type checks. They cover shared account state, encrypted-file lifecycle, restart
+simulation, same-tick startup/sign-out races, failed persistence, malformed IPC,
+403 versus 401, bounded safe management responses, and role-model restrictions.
+The independent review found and verified fixes for startup restoration racing
+sign out, forbidden access deleting a saved account, and JSON errors leaking raw
+response text. The latter also passed a Node 24 runtime check.
+
+These are synthetic/offline checks, including injected encryption in vault tests.
+The new build is not yet installed or activated. Real OS secure storage,
+correct-password persistent login, application relaunch, multiple windows and
+authenticated native model changes require installed-app acceptance. No server
+was accessed over SSH and no production memory was modified in this change.
 
 ## Rollback
 

@@ -16,7 +16,8 @@ import { nativeT } from "./native-translations"
 import { createWindowRegistry } from "./window-registry"
 import { safeWindowURL } from "./window-state"
 import { resolveExternalURL, resolveLocalFilePath } from "./external-url"
-import { modelHubLogin, isModelHubDocument, modelHubHttpError } from "./modelhub-login"
+import { isModelHubDocument, modelHubHttpError } from "./modelhub-login"
+import { getModelHubRuntime } from "./modelhub-runtime"
 
 const root = dirname(fileURLToPath(import.meta.url))
 const rendererRoot = join(root, "../renderer")
@@ -212,7 +213,7 @@ export function createMainWindow(id: string = randomUUID()) {
   win.webContents.on("login", (event, details, auth, callback) => {
     if (!isModelHubDocument(details.url)) return
     event.preventDefault()
-    const credential = modelHubLogin.take(win.webContents.id, details.url, auth.isProxy, auth.scheme)
+    const credential = getModelHubRuntime().account.take(win.webContents.id, details.url, auth.isProxy, auth.scheme)
     if (credential) callback(credential.username, credential.password)
     if (!credential) callback()
   })
@@ -220,15 +221,15 @@ export function createMainWindow(id: string = randomUUID()) {
     if (isMainFrame || !isModelHubDocument(url)) return
     const error = modelHubHttpError(status)
     if (!error) return
-    modelHubLogin.clear(modelHubOwner)
+    getModelHubRuntime().account.close(modelHubOwner)
     win.webContents.send("modelhub-load-error", error)
   })
   win.webContents.on("did-fail-load", (_event, code, _description, url, isMainFrame) => {
     if (isMainFrame || code === -3 || !isModelHubDocument(url)) return
-    modelHubLogin.clear(modelHubOwner)
+    getModelHubRuntime().account.close(modelHubOwner)
     win.webContents.send("modelhub-load-error", code === -7 ? "timeout" : "network")
   })
-  win.on("closed", () => modelHubLogin.clear(modelHubOwner))
+  win.on("closed", () => getModelHubRuntime().account.close(modelHubOwner))
 
   win.webContents.session.webRequest.onBeforeSendHeaders((details, callback) => {
     const { requestHeaders } = details

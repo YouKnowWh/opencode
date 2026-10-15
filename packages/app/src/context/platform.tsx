@@ -1,3 +1,4 @@
+import type { ModelHubAccountAPI } from "@/modelhub/account"
 import type { ModelHubLoginResult, ModelHubLoginError } from "@/modelhub/login"
 import { createSimpleContext } from "@opencode-ai/ui/context"
 import type { AsyncStorage, SyncStorage } from "@solid-primitives/storage"
@@ -30,6 +31,7 @@ export type FatalRendererErrorLog = {
 }
 
 type PlatformBase = {
+  modelhubAccount?: ModelHubAccountAPI
   modelhubLogin?(value: { username: string; password: string }): Promise<ModelHubLoginResult>
   onModelhubError?(callback: (error: ModelHubLoginError) => void): () => void
   modelhubUpstreamVersion?(): Promise<string>

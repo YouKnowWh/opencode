@@ -12,6 +12,19 @@ const updaterHandler = (_: unknown, state: UpdaterState) => {
 
 const api: ElectronAPI = {
   killSidecar: () => ipcRenderer.invoke("kill-sidecar"),
+  modelhubAccount: {
+    state: () => ipcRenderer.invoke("modelhub-account-get"),
+    signIn: (value) => ipcRenderer.invoke("modelhub-account-signin", value),
+    signOut: () => ipcRenderer.invoke("modelhub-account-signout"),
+    prepare: () => ipcRenderer.invoke("modelhub-account-prepare"),
+    snapshot: () => ipcRenderer.invoke("modelhub-account-snapshot"),
+    selectModel: (value) => ipcRenderer.invoke("modelhub-account-model", value),
+    subscribe: (callback) => {
+      const handler = (_: unknown, state: Parameters<typeof callback>[0]) => callback(state)
+      ipcRenderer.on("modelhub-account-state", handler)
+      return () => ipcRenderer.removeListener("modelhub-account-state", handler)
+    },
+  },
   modelhubLogin: (value) => ipcRenderer.invoke("modelhub-login", value),
   onModelhubError: (callback) => {
     const handler = (_: unknown, error: Parameters<typeof callback>[0]) => callback(error)

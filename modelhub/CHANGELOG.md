@@ -15,6 +15,12 @@
 
 ## Unreleased
 
+- Share one Model Hub account across projects and windows, with optional encrypted
+  login restoration after restart and global sign out.
+- Use OpenCode's native settings controls for the account and authorized role LLMs;
+  open the full server console only for advanced management.
+- Preserve role budgets and auxiliary model settings when changing an LLM, and
+  keep raw management response text out of native errors.
 - Make the native app the everyday entry and retire Terminal-based `.command`
   launchers; optional CLI launch delegates to macOS Launch Services.
 - Clarify the separate official/fork apps and the app-managed local backend.

@@ -1,158 +1,53 @@
+/* Reuse OpenCode v2 surfaces, typography and controls; no parallel color system. */
 [data-component="modelhub-settings"] {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  min-height: 0;
-  background: #fff;
-  color: #242b35;
-  font-size: 14px;
+  min-height: 100%;
 }
-[data-component="modelhub-settings"] .mh-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 22px 28px;
-  border-bottom: 1px solid #e8edf3;
-}
-[data-component="modelhub-settings"] h2 {
+[data-component="modelhub-settings"] :is(p, form) {
   margin: 0;
-  font-size: 20px;
-  font-weight: 600;
 }
-[data-component="modelhub-settings"] .mh-header p {
-  margin-top: 7px;
-  color: #7a8594;
-  font-size: 13px;
-  font-weight: 400;
-}
-[data-component="modelhub-settings"] .mh-actions {
+.mh-role-controls,
+.mh-row-actions,
+.mh-account-actions,
+.mh-console-heading {
   display: flex;
   align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
+  justify-content: flex-end;
+  gap: 12px;
 }
-[data-component="modelhub-settings"] button {
-  cursor: pointer;
-  font-weight: 500;
+.mh-account-actions {
+  margin-top: 16px;
 }
-[data-component="modelhub-settings"] .mh-actions button {
-  min-width: 38px;
-  height: 38px;
-  padding: 0 11px;
-  border: 1px solid #dfe6ef;
-  border-radius: 10px;
-  background: #fff;
-  color: #65768b;
-  white-space: nowrap;
-}
-[data-component="modelhub-settings"] .mh-actions button:hover {
-  background: #f1f6fd;
-  color: #2489ee;
-}
-[data-component="modelhub-settings"] button:disabled {
-  opacity: 0.45;
-  cursor: default;
-}
-[data-component="modelhub-settings"] .mh-version {
-  display: flex;
+.mh-console-heading {
   justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-  padding: 12px 28px;
-  border-bottom: 1px solid #edf1f6;
-  background: #fafbfd;
-  color: #7a8594;
-  font-size: 12px;
+}
+[data-component="modelhub-account"] [data-component="text-input-v2"] {
+  width: min(280px, 100%);
+}
+.mh-role-controls {
+  max-width: 100%;
+}
+.mh-role-controls [data-component="select-v2"] {
+  min-width: 0;
+  max-width: 320px;
+}
+.mh-error {
+  color: var(--v2-text-text-error, #b42318);
+  font-size: 13px;
   line-height: 1.5;
 }
-[data-component="modelhub-settings"] .mh-link {
-  border: 0;
-  background: transparent;
-  color: #2489ee;
-  flex-shrink: 0;
-}
-[data-component="modelhub-settings"] .mh-login {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 24px;
-  padding: 36px 28px;
-  overflow: auto;
-}
-[data-component="modelhub-settings"] .mh-login > p {
-  max-width: 420px;
-  color: #7a8594;
-  font-weight: 400;
-  line-height: 1.8;
-  text-align: center;
-}
-[data-component="modelhub-settings"] form {
-  display: flex;
-  flex-direction: column;
-  width: min(100%, 360px);
-  gap: 14px;
-}
-[data-component="modelhub-settings"] input {
-  min-width: 0;
-  width: 100%;
-  height: 46px;
-  padding: 0 15px;
-  border: 1px solid #d8e2ee;
-  border-radius: 12px;
-  background: #fff;
-  color: #242b35;
-}
-[data-component="modelhub-settings"] input::placeholder {
-  color: #9aa5b3;
-}
-[data-component="modelhub-settings"] input:focus {
-  outline: 2px solid #d9ebff;
-  border-color: #2489ee;
-}
-[data-component="modelhub-settings"] .mh-primary {
-  height: 44px;
-  border: 0;
-  border-radius: 12px;
-  background: #2489ee;
-  color: #fff;
-  padding: 0 22px;
-}
-[data-component="modelhub-settings"] .mh-primary:hover {
-  background: #167bde;
-}
-[data-component="modelhub-settings"] [role="alert"] {
-  color: #db5050;
-  font-size: 13px;
-}
 [data-component="modelhub-settings"] iframe {
-  flex: 1;
   width: 100%;
-  min-height: 0;
-  border: 0;
-  background: #fff;
+  min-height: 540px;
+  border: 0.5px solid var(--v2-border-border-muted);
+  border-radius: 8px;
+  background: var(--v2-background-bg-base);
 }
-[data-component="modelhub-settings"] .mh-relogin {
-  padding: 10px;
-  border-top: 1px solid #edf1f6;
-}
-@media (max-width: 650px) {
-  [data-component="modelhub-settings"] .mh-header {
+@media (max-width: 640px) {
+  .mh-role-controls,
+  .mh-row-actions {
     flex-wrap: wrap;
-    padding: 16px;
   }
-  [data-component="modelhub-settings"] .mh-actions {
-    margin-left: auto;
+  [data-component="modelhub-settings"] iframe {
+    min-height: 420px;
   }
-  [data-component="modelhub-settings"] .mh-version {
-    padding: 10px 16px;
-  }
-}
-
-[data-component="modelhub-settings"] .mh-loading {
-  padding: 12px 28px;
-  color: #65768b;
-  font-size: 13px;
 }

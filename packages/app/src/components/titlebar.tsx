@@ -15,6 +15,9 @@ import { useLocation, useNavigate, useParams } from "@solidjs/router"
 import { IconButton } from "@opencode-ai/ui/icon-button"
 import { Icon } from "@opencode-ai/ui/icon"
 import { Button } from "@opencode-ai/ui/button"
+import { ButtonV2 } from "@opencode-ai/ui/v2/button-v2"
+import { useModelHubAccount } from "@/modelhub/context"
+import { useSettingsDialog } from "./settings-dialog"
 import { Tooltip, TooltipKeybind } from "@opencode-ai/ui/tooltip"
 import { IconButtonV2 } from "@opencode-ai/ui/v2/icon-button-v2"
 import { Icon as IconV2 } from "@opencode-ai/ui/v2/icon"
@@ -39,6 +42,21 @@ import type { PromptSession } from "@/context/prompt"
 import "./titlebar.css"
 import { newTabTooltipKeybind } from "./command-tooltip-keybind"
 import { normalizeSessionInfo } from "@/utils/session"
+
+function ModelHubAccountButton() {
+  const account = useModelHubAccount()
+  const language = useLanguage()
+  const open = useSettingsDialog("modelhub-account")
+  return (
+    <Show when={account.api}>
+      <TooltipV2 placement="bottom" value={language.t("modelhub.accountScope")}>
+        <ButtonV2 variant="ghost" size="small" aria-label={language.t("modelhub.account")} onClick={open}>
+          {account.state.signedIn ? account.state.username : language.t("modelhub.signIn")}
+        </ButtonV2>
+      </TooltipV2>
+    </Show>
+  )
+}
 
 const legacyTitlebarHeight = 40
 const v2TitlebarHeight = 36
@@ -430,6 +448,7 @@ export function Titlebar(props: { update?: TitlebarUpdate; debugTools?: { visibl
                   />
                 </TooltipV2>
                 <div class="flex-1" />
+                <ModelHubAccountButton />
                 <TitlebarV2Right state={v2RightState()} />
               </div>
             )

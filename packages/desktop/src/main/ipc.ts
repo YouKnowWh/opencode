@@ -24,7 +24,7 @@ import type { UpdaterController } from "./updater-controller"
 import { createUpdaterSubscriptions } from "./updater-subscriptions"
 import { createDesktopDraftStore } from "./draft-store"
 import { nativeT } from "./native-translations"
-import { modelHubLogin } from "./modelhub-login"
+import { getModelHubRuntime } from "./modelhub-runtime"
 import { isTrustedRendererUrl } from "./windows"
 import { upstreamVersion } from "../../../app/src/modelhub/upstream"
 
@@ -257,7 +257,36 @@ export function registerIpcHandlers(deps: Deps) {
     if (!isTrustedRendererUrl(event.senderFrame?.url) || event.senderFrame !== event.sender.mainFrame)
       throw new Error("Untrusted console login sender")
     await event.sender.session.clearAuthCache()
-    return modelHubLogin.set(event.sender.id, value, (url, options) => net.fetch(url, options))
+    return getModelHubRuntime().account.signIn({ ...value, remember: false })
+  })
+  const modelhubHandlers = {
+    "modelhub-account-get": () => getModelHubRuntime().account.state(),
+    "modelhub-account-signin": async (
+      event: IpcMainInvokeEvent,
+      value: { username: string; password: string; remember: boolean },
+    ) => {
+      await event.sender.session.clearAuthCache()
+      return getModelHubRuntime().account.signIn(value)
+    },
+    "modelhub-account-signout": async (event: IpcMainInvokeEvent) => {
+      await getModelHubRuntime().account.signOut()
+      await event.sender.session.clearAuthCache()
+      await event.sender.session.clearStorageData({
+        origin: "https://llm.alex045.xyz",
+        storages: ["cookies", "localstorage", "indexdb", "cachestorage"],
+      })
+    },
+    "modelhub-account-prepare": (event: IpcMainInvokeEvent) => getModelHubRuntime().account.prepare(event.sender.id),
+    "modelhub-account-snapshot": () => getModelHubRuntime().management.snapshot(),
+    "modelhub-account-model": (_event: IpcMainInvokeEvent, value: { roleId: string; model: string }) =>
+      getModelHubRuntime().management.selectModel(value),
+  }
+  Object.entries(modelhubHandlers).forEach(([channel, handler]) => {
+    ipcMain.handle(channel, (event: IpcMainInvokeEvent, value) => {
+      if (!isTrustedRendererUrl(event.senderFrame?.url) || event.senderFrame !== event.sender.mainFrame)
+        throw new Error("Untrusted Model Hub account sender")
+      return handler(event, value)
+    })
   })
   ipcMain.handle("modelhub-upstream-version", (event: IpcMainInvokeEvent) => {
     if (!isTrustedRendererUrl(event.senderFrame?.url) || event.senderFrame !== event.sender.mainFrame)
