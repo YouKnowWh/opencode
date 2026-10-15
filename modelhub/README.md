@@ -26,11 +26,11 @@ branch; use that same base for a future PR, not the moving upstream `dev`.
   change the persisted role selection.
 - The management login is separate from chat credentials. A native HTTPS request
   verifies the console login before the iframe opens. It uses only the fixed
-  `/hub/` URL, follows no redirects, and sends no cookies. Rejected credentials,
-  denied access, network errors, server errors and timeouts return to the login
+  `/hub/` URL with a 15-second timeout, follows no redirects, and sends no cookies.
+  Rejected credentials, denied access, network errors, server errors and timeouts return to the login
   form with a specific message. The username stays; the password is cleared.
-  Subframe HTTP/load errors also return to the form, and a loading deadline
-  prevents an indefinitely blank panel. Credentials remain in main-process memory
+  Subframe HTTP/load errors also return to the form, and a 20-second loading
+  deadline prevents an indefinitely blank panel. Credentials remain in main-process memory
   only until the window's console Basic-auth challenge consumes them; they are
   not persisted by the addon or passed to model requests. Signing in again clears
   Electron's HTTP authentication cache before verifying replacement credentials.
@@ -116,16 +116,24 @@ handoff. Separate PRANA and ARONA `memory_search`/`memory_read` runs completed
 in 32.05 s and 6.677 s respectively. These are individual CLI-run durations,
 not service latency benchmarks or GUI measurements.
 
-The one-shot checks above passed 54 app tests, 10 desktop tests and 3 addon
-Node tests: **67 tests in total**. App and desktop type checks also passed.
+Before the login-recovery change, the one-shot checks passed 54 app tests,
+10 desktop tests and 3 addon Node tests: **67 tests in total**. App and desktop
+type checks also passed.
 These checks cover role recognition and selection, request/tool identity guards,
 per-execution memory credentials, scoped console login, the separate deep-link
 protocol and packaging identity. The login checks use unit inputs rather than
 a live console. Production builds were checked on macOS arm64 only.
 
-The installed fork was activated and its GUI handoff verified as recorded below.
-Authenticated console management remains unverified. CLI success alone does not
-establish desktop acceptance.
+For the login-recovery fix (`f82f8ba`, 2026-10-15), 59 app tests and 15 desktop
+tests passed: **74 related tests**, along with both package type checks.
+The production build and macOS arm64 packaging succeeded. This repair bundle
+has **not been activated** and awaits explicit user authorization. Rejected-login
+retry, iframe recovery and successful console authentication have not been
+verified in the newly built app.
+
+The previously installed fork's GUI handoff was verified as recorded below;
+that earlier acceptance does not verify this login fix. CLI and unit checks
+alone do not establish desktop acceptance.
 
 Windows/Linux, history migration and a plugins/Skills configuration manager
 remain unverified or unimplemented. No server code deployment or legacy
@@ -146,5 +154,5 @@ GUI ARONA → PRANA → ARONA messages keep one session URL and recall the prece
 reply. The UI reports approximately 2 / 6 / 2 seconds; these are displayed
 values, separate from the CLI wall-clock measurements above.
 
-The console management username/password has not been entered. Authenticated
-iframe management remains unverified. No browser credentials were extracted.
+Successful authenticated iframe management remains unverified. No browser
+credentials were extracted.
