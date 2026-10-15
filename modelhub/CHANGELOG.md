@@ -12,3 +12,9 @@
   official desktop client; preload locked plugin dependencies.
 - Check upstream releases through the desktop network bridge. Authentication and
   new-build GUI acceptance remain separate verification gates.
+
+## Unreleased
+
+- Make the native app the everyday entry and retire Terminal-based `.command`
+  launchers; optional CLI launch delegates to macOS Launch Services.
+- Clarify the separate official/fork apps and the app-managed local backend.

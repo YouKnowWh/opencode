@@ -76,9 +76,14 @@ export function prepare() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   try {
-    const p = prepare(),
-      action = process.argv[2]
-    if (action === "--check")
+    const action = process.argv[2]
+    if (!action) {
+      const app = path.join(homedir(), "Applications/OpenCode Model Hub.app")
+      if (!existsSync(app)) throw new Error("请先安装 OpenCode Model Hub.app；桌面入口直接使用应用程序")
+      const result = spawnSync("/usr/bin/open", [app], { stdio: "ignore" })
+      if (result.error || result.status !== 0) throw new Error("无法打开 OpenCode Model Hub.app")
+    } else if (action === "--check") {
+      const p = prepare()
       console.log(
         JSON.stringify({
           roles: ["arona", "prana"],
@@ -87,7 +92,8 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
           api: "not called",
         }),
       )
-    else if (action === "--config-check") {
+    } else if (action === "--config-check") {
+      const p = prepare()
       const cli = path.join(
         homedir(),
         ".local/share/modelhub-opencode/runtime/node_modules/opencode-darwin-arm64/bin/opencode",
@@ -102,11 +108,6 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
       const value = JSON.parse(r.stdout)
       if (value.enabled_providers.join() !== "modelhub-arona,modelhub-prana") throw new Error("角色配置不匹配")
       console.log("两个角色配置解析成功，未调用模型")
-    } else if (!action) {
-      const app = path.join(homedir(), "Applications/OpenCode Model Hub.app/Contents/MacOS/OpenCode Model Hub")
-      if (!existsSync(app)) throw new Error("请先构建并安装 OpenCode Model Hub.app；原官方客户端保持不变")
-      const result = spawnSync(app, [], { env: { ...p.env, SHELL: "/usr/bin/false" }, stdio: "inherit" })
-      process.exitCode = result.status ?? 1
     } else throw new Error("支持 --check、--config-check 或启动桌面应用")
   } catch (error) {
     console.error(error.message)

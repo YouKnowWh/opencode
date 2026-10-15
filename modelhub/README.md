@@ -35,6 +35,19 @@ branch; use that same base for a future PR, not the moving upstream `dev`.
   The Model Hub pane can check upstream releases; adopting an update requires a
   reviewed rebase and rebuild.
 
+## Everyday desktop entry
+
+Open **OpenCode Model Hub.app** from the Desktop shortcut or `~/Applications`.
+Its settings include **Model Hub**. The separate **OpenCode.app** is the official
+client and does not contain this fork's settings pane.
+
+The app owns its local backend as an Electron utility child, with piped output;
+it needs no Terminal window or separately launched service. The server continues
+to provide model routing and role memory, while tasks execute locally. The retired
+`.command` launchers are no longer distributed. The optional `node launch.mjs`
+entry delegates to macOS Launch Services, without holding a console attached to
+the app. No-argument launch does not read or prepare credentials itself.
+
 ## Local prerequisite
 
 Existing, separately provisioned keys are read from:
@@ -106,10 +119,9 @@ per-execution memory credentials, scoped console login, the separate deep-link
 protocol and packaging identity. The login checks use unit inputs rather than
 a live console. Production builds were checked on macOS arm64 only.
 
-The rebuilt bundle has **not been activated**. Desktop console authentication
-and live role handoff/send in the GUI remain unverified; the current desktop
-tool-permission prompt awaits the user's response. Passing CLI and unit checks
-does not establish desktop acceptance.
+The installed fork was activated and its GUI handoff verified as recorded below.
+Authenticated console management remains unverified. CLI success alone does not
+establish desktop acceptance.
 
 Windows/Linux, history migration and a plugins/Skills configuration manager
 remain unverified or unimplemented. No server code deployment or legacy
