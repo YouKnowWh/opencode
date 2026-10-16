@@ -1,3 +1,4 @@
+import { FileMutation } from "@opencode-ai/core/file-mutation"
 import { LayerNode } from "@opencode-ai/core/effect/layer-node"
 import { httpClient } from "@opencode-ai/core/effect/app-node-platform"
 import { Ripgrep } from "@opencode-ai/core/ripgrep"
@@ -440,6 +441,7 @@ export const node = LayerNode.make({
     LSP.node,
     Instruction.node,
     FSUtil.node,
+    FileMutation.node,
     EventV2Bridge.node,
     httpClient,
     CrossSpawnSpawner.node,

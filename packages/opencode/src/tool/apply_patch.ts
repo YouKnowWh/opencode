@@ -1,3 +1,4 @@
+import { FileMutation } from "@opencode-ai/core/file-mutation"
 import * as path from "path"
 import { Effect, Schema } from "effect"
 import * as Tool from "./tool"
@@ -22,6 +23,7 @@ export const Parameters = Schema.Struct({
 export const ApplyPatchTool = Tool.define(
   "apply_patch",
   Effect.gen(function* () {
+    const mutation = yield* FileMutation.Service
     const lsp = yield* LSP.Service
     const afs = yield* FSUtil.Service
     const format = yield* Format.Service
@@ -65,6 +67,8 @@ export const ApplyPatchTool = Tool.define(
         additions: number
         deletions: number
         bom: boolean
+        expected?: Uint8Array
+        destinationExpected?: Uint8Array
       }> = []
 
       let totalDiff = ""
@@ -75,7 +79,8 @@ export const ApplyPatchTool = Tool.define(
 
         switch (hunk.type) {
           case "add": {
-            const oldContent = ""
+            const source = (yield* afs.exists(filePath)) ? yield* Bom.readFile(afs, filePath) : undefined
+            const oldContent = source?.text ?? ""
             const newContent =
               hunk.contents.length === 0 || hunk.contents.endsWith("\n") ? hunk.contents : `${hunk.contents}\n`
             const next = Bom.split(newContent)
@@ -96,7 +101,8 @@ export const ApplyPatchTool = Tool.define(
               diff,
               additions,
               deletions,
-              bom: next.bom,
+              bom: source?.bom || next.bom,
+              expected: source?.bytes,
             })
 
             totalDiff += diff + "\n"
@@ -141,6 +147,8 @@ export const ApplyPatchTool = Tool.define(
 
             const movePath = hunk.move_path ? path.resolve(instance.directory, hunk.move_path) : undefined
             yield* assertExternalDirectoryEffect(ctx, movePath)
+            const destinationExpected =
+              movePath && (yield* afs.exists(movePath)) ? yield* afs.readFile(movePath) : undefined
 
             fileChanges.push({
               filePath,
@@ -148,10 +156,12 @@ export const ApplyPatchTool = Tool.define(
               newContent,
               type: hunk.move_path ? "move" : "update",
               movePath,
+              destinationExpected,
               diff,
               additions,
               deletions,
               bom,
+              expected: source.bytes,
             })
 
             totalDiff += diff + "\n"
@@ -182,6 +192,7 @@ export const ApplyPatchTool = Tool.define(
               additions: 0,
               deletions,
               bom: source.bom,
+              expected: source.bytes,
             })
 
             totalDiff += deleteDiff + "\n"
@@ -214,6 +225,37 @@ export const ApplyPatchTool = Tool.define(
         },
       })
 
+      // Recheck the entire approved batch before the first mutation. Another
+      // editor may have changed a later file while this tool awaited approval.
+      const targets = new Set<string>()
+      for (const change of fileChanges) {
+        for (const target of [change.filePath, ...(change.movePath ? [change.movePath] : [])]) {
+          if (targets.has(target)) return yield* Effect.fail(new Error(`Repeated patch target: ${target}`))
+          targets.add(target)
+        }
+        if (change.expected) {
+          const current = yield* afs.readFile(change.filePath)
+          if (
+            current.length !== change.expected.length ||
+            !current.every((byte, index) => byte === change.expected![index])
+          )
+            return yield* Effect.fail(
+              new Error(`File changed while awaiting approval; read it again: ${change.filePath}`),
+            )
+        }
+        const destination = change.type === "add" && !change.expected ? change.filePath : change.movePath
+        if (destination && change.destinationExpected) {
+          const current = yield* afs.readFile(destination)
+          if (
+            current.length !== change.destinationExpected.length ||
+            !current.every((byte, index) => byte === change.destinationExpected![index])
+          )
+            return yield* Effect.fail(new Error(`File changed while awaiting approval; read it again: ${destination}`))
+        } else if (destination && (yield* afs.exists(destination))) {
+          return yield* Effect.fail(new Error(`File already exists; read it again: ${destination}`))
+        }
+      }
+
       // Apply the changes
       const updates: Array<{ file: string; event: "add" | "change" | "unlink" }> = []
 
@@ -223,12 +265,25 @@ export const ApplyPatchTool = Tool.define(
           case "add":
             // Create parent directories (recursive: true is safe on existing/root dirs)
 
-            yield* afs.writeWithDirs(change.filePath, Bom.join(change.newContent, change.bom))
+            yield* change.expected
+              ? mutation.writeIfUnchanged({
+                  target: { canonical: change.filePath, resource: change.filePath },
+                  content: Bom.join(change.newContent, change.bom),
+                  expected: change.expected,
+                })
+              : mutation.create({
+                  target: { canonical: change.filePath, resource: change.filePath },
+                  content: Bom.join(change.newContent, change.bom),
+                })
             updates.push({ file: change.filePath, event: "add" })
             break
 
           case "update":
-            yield* afs.writeWithDirs(change.filePath, Bom.join(change.newContent, change.bom))
+            yield* mutation.writeIfUnchanged({
+              target: { canonical: change.filePath, resource: change.filePath },
+              content: Bom.join(change.newContent, change.bom),
+              expected: change.expected!,
+            })
             updates.push({ file: change.filePath, event: "change" })
             break
 
@@ -236,15 +291,30 @@ export const ApplyPatchTool = Tool.define(
             if (change.movePath) {
               // Create parent directories (recursive: true is safe on existing/root dirs)
 
-              yield* afs.writeWithDirs(change.movePath!, Bom.join(change.newContent, change.bom))
-              yield* afs.remove(change.filePath)
+              yield* change.destinationExpected
+                ? mutation.writeIfUnchanged({
+                    target: { canonical: change.movePath, resource: change.movePath },
+                    content: Bom.join(change.newContent, change.bom),
+                    expected: change.destinationExpected,
+                  })
+                : mutation.create({
+                    target: { canonical: change.movePath, resource: change.movePath },
+                    content: Bom.join(change.newContent, change.bom),
+                  })
+              yield* mutation.removeIfUnchanged({
+                target: { canonical: change.filePath, resource: change.filePath },
+                expected: change.expected!,
+              })
               updates.push({ file: change.filePath, event: "unlink" })
               updates.push({ file: change.movePath, event: "add" })
             }
             break
 
           case "delete":
-            yield* afs.remove(change.filePath)
+            yield* mutation.removeIfUnchanged({
+              target: { canonical: change.filePath, resource: change.filePath },
+              expected: change.expected!,
+            })
             updates.push({ file: change.filePath, event: "unlink" })
             break
         }

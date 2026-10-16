@@ -25,6 +25,10 @@ export interface ConditionalWriteInput extends WriteInput {
   readonly expected: Uint8Array
 }
 
+export interface ConditionalRemoveInput extends RemoveInput {
+  readonly expected: Uint8Array
+}
+
 export interface RemoveInput {
   readonly target: Target
 }
@@ -61,6 +65,9 @@ export interface Interface {
   readonly writeIfUnchanged: (
     input: ConditionalWriteInput,
   ) => Effect.Effect<WriteResult, StaleContentError | FSUtil.Error>
+  readonly removeIfUnchanged: (
+    input: ConditionalRemoveInput,
+  ) => Effect.Effect<RemoveResult, StaleContentError | FSUtil.Error>
   readonly remove: (input: RemoveInput) => Effect.Effect<RemoveResult, FSUtil.Error>
 }
 
@@ -156,6 +163,19 @@ const layer = Layer.effect(
       ),
     )
 
+    const removeIfUnchanged = Effect.fn("FileMutation.removeIfUnchanged")((input: ConditionalRemoveInput) =>
+      withTargetLock(input.target)(
+        Effect.gen(function* () {
+          const current = yield* fs.readFile(input.target.canonical)
+          if (!sameBytes(current, input.expected)) {
+            return yield* new StaleContentError({ path: input.target.canonical })
+          }
+          yield* fs.remove(input.target.canonical)
+          return removeResult(input.target, true)
+        }),
+      ),
+    )
+
     const remove = Effect.fn("FileMutation.remove")((input: RemoveInput) =>
       withTargetLock(input.target)(
         Effect.gen(function* () {
@@ -168,7 +188,7 @@ const layer = Layer.effect(
       ),
     )
 
-    return Service.of({ create, write, writeTextPreservingBom, writeIfUnchanged, remove })
+    return Service.of({ create, write, writeTextPreservingBom, writeIfUnchanged, removeIfUnchanged, remove })
   }),
 )
 
