@@ -119,6 +119,23 @@ const getBase = (appId: string): Configuration => ({
 })
 
 function getConfig() {
+  if (process.env.MODELHUB_BUILD === "1")
+    return {
+      ...getBase("ai.modelhub.opencode"),
+      appId: "ai.modelhub.opencode",
+      productName: "OpenCode Model Hub",
+      protocols: { name: "OpenCode Model Hub", schemes: ["modelhub-opencode"] },
+      publish: null,
+      extraResources: [
+        ...(getBase("ai.modelhub.opencode").extraResources ?? []),
+        {
+          from: "../../modelhub",
+          to: "modelhub",
+          filter: ["*.mjs", "package*.json", "node_modules/**/*", "!*.test.mjs"],
+        },
+      ],
+      mac: { ...getBase("ai.modelhub.opencode").mac, notarize: false, identity: null },
+    } satisfies Configuration
   const appId = APP_IDS[channel]
   const base = getBase(appId)
 

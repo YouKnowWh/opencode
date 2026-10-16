@@ -16,6 +16,8 @@ import { nativeT } from "./native-translations"
 import { createWindowRegistry } from "./window-registry"
 import { safeWindowURL } from "./window-state"
 import { resolveExternalURL, resolveLocalFilePath } from "./external-url"
+import { isModelHubDocument, modelHubHttpError } from "./modelhub-login"
+import { getModelHubRuntime } from "./modelhub-runtime"
 
 const root = dirname(fileURLToPath(import.meta.url))
 const rendererRoot = join(root, "../renderer")
@@ -207,6 +209,27 @@ export function createMainWindow(id: string = randomUUID()) {
   allowRendererPermissions(win)
   wireWindowRecovery(win, id)
   wireNavigationPolicy(win)
+  const modelHubOwner = win.webContents.id
+  win.webContents.on("login", (event, details, auth, callback) => {
+    if (!isModelHubDocument(details.url)) return
+    event.preventDefault()
+    const credential = getModelHubRuntime().account.take(win.webContents.id, details.url, auth.isProxy, auth.scheme)
+    if (credential) callback(credential.username, credential.password)
+    if (!credential) callback()
+  })
+  win.webContents.on("did-frame-navigate", (_event, url, status, _text, isMainFrame) => {
+    if (isMainFrame || !isModelHubDocument(url)) return
+    const error = modelHubHttpError(status)
+    if (!error) return
+    getModelHubRuntime().account.close(modelHubOwner)
+    win.webContents.send("modelhub-load-error", error)
+  })
+  win.webContents.on("did-fail-load", (_event, code, _description, url, isMainFrame) => {
+    if (isMainFrame || code === -3 || !isModelHubDocument(url)) return
+    getModelHubRuntime().account.close(modelHubOwner)
+    win.webContents.send("modelhub-load-error", code === -7 ? "timeout" : "network")
+  })
+  win.on("closed", () => getModelHubRuntime().account.close(modelHubOwner))
 
   win.webContents.session.webRequest.onBeforeSendHeaders((details, callback) => {
     const { requestHeaders } = details
@@ -484,18 +507,23 @@ function allowRendererPermissions(win: BrowserWindow) {
   win.webContents.session.setPermissionRequestHandler((webContents, permission, callback, details) => {
     callback(
       rendererPermissions.has(permission) &&
-        isTrustedRendererUrl(details.requestingUrl) &&
+        (isTrustedRendererUrl(details.requestingUrl) ||
+          (permission === clipboardWritePermission && isModelHubDocument(details.requestingUrl))) &&
         webContents.id === webContentsId,
     )
   })
   win.webContents.session.setPermissionCheckHandler((webContents, permission, requestingOrigin, details) => {
     if (!rendererPermissions.has(permission)) return false
     if (webContents && webContents.id !== webContentsId) return false
-    return isTrustedRendererUrl(details.requestingUrl) || isTrustedRendererUrl(requestingOrigin)
+    return (
+      isTrustedRendererUrl(details.requestingUrl) ||
+      isTrustedRendererUrl(requestingOrigin) ||
+      (permission === clipboardWritePermission && isModelHubDocument(details.requestingUrl))
+    )
   })
 }
 
-function isTrustedRendererUrl(value?: string) {
+export function isTrustedRendererUrl(value?: string) {
   return isRendererUrl(value)
 }
 

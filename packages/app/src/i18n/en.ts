@@ -1,6 +1,78 @@
 import { DESKTOP_NATIVE_ENGLISH } from "./desktop-native"
 
 export const dict = {
+  "modelhub.extensions.title": "Project and extensions",
+  "modelhub.extensions.project": "Shared project rules",
+  "modelhub.extensions.projectDescription":
+    "Open the same folder as Codex. Load its AGENTS.md; project provider settings stay isolated.",
+  "modelhub.extensions.enabled": "Enabled",
+  "modelhub.extensions.skills": "Skills folders",
+  "modelhub.extensions.skillsDescription":
+    "Choose existing folders containing Skills, including your Codex Skills. No files are copied.",
+  "modelhub.extensions.add": "Add folder",
+  "modelhub.extensions.remove": "Remove",
+  "modelhub.extensions.removePath": "Remove {{path}}",
+  "modelhub.extensions.mcpName": "MCP name",
+  "modelhub.extensions.mcpUrl": "HTTPS MCP endpoint",
+  "modelhub.extensions.addMcp": "Add MCP",
+  "modelhub.extensions.mcpDescription":
+    "Remote HTTPS MCP only; use the native MCP authentication flow. Do not put tokens in the URL. Plugins and local MCP processes are not imported automatically.",
+  "modelhub.extensions.saved": "Saved. Applies the next time this client starts. Active tasks were not interrupted.",
+  "modelhub.extensions.failed":
+    "Could not load or save extensions. Settings may have changed in another window. Check absolute Skills paths and unique MCP names with credential-free HTTPS URLs, then retry.",
+
+  "modelhub.account": "Account",
+  "modelhub.signIn": "Sign in",
+  "modelhub.signOut": "Sign out",
+  "modelhub.remember": "Stay signed in after restarting",
+  "modelhub.accountScope": "One Model Hub account for all projects and windows. Role memory remains isolated.",
+  "modelhub.secureStorageNotice":
+    "Saved credentials use operating-system encryption. Signing out removes the saved login.",
+  "modelhub.remembered": "Signed in across projects and windows. Login restores after restarting this client.",
+  "modelhub.desktopRequired": "Account sign-in is available in the desktop client.",
+  "modelhub.roleModels": "Role models",
+  "modelhub.chooseModel": "Model for {{role}}",
+  "modelhub.unconfigured": "Not configured",
+  "modelhub.applyRoleModel": "Apply to new requests from all clients of this role",
+  "modelhub.syncModels": "Model catalogue",
+  "modelhub.modelScope":
+    "Only models already allowed for each role are shown. Changes apply to every client using that role.",
+  "modelhub.managementFailed":
+    "Unable to load or save Model Hub settings. Check the connection, permissions and allowed models, then retry.",
+  "modelhub.management": "Management",
+  "modelhub.console": "Advanced console",
+  "modelhub.consoleDescription":
+    "Manage providers, model permissions, keys, usage and memory in the existing server console.",
+  "modelhub.upstreamDescription":
+    "Check the official OpenCode release. Fork updates are reviewed and rebuilt separately.",
+  "modelhub.checkUpdates": "Check",
+  "modelhub.refreshModels": "Refresh",
+  "modelhub.error.storage":
+    "Could not securely save or clear the login. Check the system credential store, or sign in without remembering it.",
+  "modelhub.title": "Model Hub",
+  "modelhub.providerName": "ModelHub",
+  "modelhub.description": "Manage role models in one place. Changes apply to the next request.",
+  "modelhub.loginNotice":
+    "Sign in to your Model Hub console separately. Client keys stay on this device. Switching roles keeps this conversation and shares its history; long-term memory stays role-local.",
+  "modelhub.open": "Open Model Hub",
+  "modelhub.refresh": "Reload Model Hub",
+  "modelhub.browser": "Open Model Hub in browser",
+  "modelhub.username": "Console username",
+  "modelhub.password": "Console password",
+  "modelhub.loginRequired": "Enter the console username and password. Do not use a role API key.",
+  "modelhub.signingIn": "Checking sign-in…",
+  "modelhub.loading": "Loading Model Hub…",
+  "modelhub.error.credentials": "Incorrect username or password. Please try again.",
+  "modelhub.error.forbidden": "This account cannot access Model Hub.",
+  "modelhub.error.network": "Could not connect to Model Hub. Check your connection and try again.",
+  "modelhub.error.timeout": "Model Hub took too long to respond. Please try again.",
+  "modelhub.error.unavailable": "Model Hub is unavailable. Please try again later or open it in your browser.",
+  "modelhub.relogin": "Sign in again",
+  "modelhub.upstream": "Upstream releases",
+  "modelhub.upstreamNotice": "Latest upstream: {{version}}. Fork updates are reviewed and rebuilt separately.",
+  "modelhub.upstreamChecking": "Checking upstream version…",
+  "modelhub.upstreamFailed": "Unable to check upstream version. Try again later.",
+  "modelhub.releases": "Release notes",
   ...DESKTOP_NATIVE_ENGLISH,
   "command.category.suggested": "Suggested",
   "command.category.view": "View",

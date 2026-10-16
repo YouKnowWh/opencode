@@ -14,6 +14,8 @@ import { useDialog } from "@opencode-ai/ui/context/dialog"
 import { useLayout } from "@/context/layout"
 import { useTabs } from "@/context/tabs"
 import { useServerSync } from "@/context/server-sync"
+import { SettingsModelHub } from "./modelhub"
+import { SettingsModelHubAccount } from "./modelhub-account"
 
 export const DialogSettings: Component<{
   sessionID?: string
@@ -61,6 +63,10 @@ export const DialogSettings: Component<{
                       <Icon name="sliders" />
                       {language.t("settings.tab.general")}
                     </TabsV2.Trigger>
+                    <TabsV2.Trigger value="modelhub-account">
+                      <Icon name="providers" />
+                      {language.t("modelhub.account")}
+                    </TabsV2.Trigger>
                     <TabsV2.Trigger value="shortcuts">
                       <Icon name="keyboard" />
                       {language.t("settings.tab.shortcuts")}
@@ -83,6 +89,10 @@ export const DialogSettings: Component<{
                       <Icon name="models" />
                       {language.t("settings.models.title")}
                     </TabsV2.Trigger>
+                    <TabsV2.Trigger value="modelhub">
+                      <Icon name="server" />
+                      {language.t("modelhub.title")}
+                    </TabsV2.Trigger>
                   </div>
                 </div>
               </div>
@@ -96,6 +106,9 @@ export const DialogSettings: Component<{
         <TabsV2.Content value="general" class="settings-v2-panel">
           <SettingsGeneralV2 sessionID={props.sessionID} />
         </TabsV2.Content>
+        <TabsV2.Content value="modelhub-account" class="settings-v2-panel">
+          <SettingsModelHubAccount />
+        </TabsV2.Content>
         <TabsV2.Content value="shortcuts" class="settings-v2-panel">
           <SettingsKeybinds v2 />
         </TabsV2.Content>
@@ -107,6 +120,9 @@ export const DialogSettings: Component<{
         </TabsV2.Content>
         <TabsV2.Content value="models" class="settings-v2-panel">
           <SettingsModelsV2 />
+        </TabsV2.Content>
+        <TabsV2.Content value="modelhub" class="settings-v2-panel">
+          <SettingsModelHub />
         </TabsV2.Content>
       </TabsV2>
     </Dialog>

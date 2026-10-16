@@ -1,3 +1,4 @@
+import { FileMutation } from "@opencode-ai/core/file-mutation"
 import { Schema } from "effect"
 import * as path from "path"
 import { Effect } from "effect"
@@ -27,6 +28,7 @@ export const Parameters = Schema.Struct({
 export const WriteTool = Tool.define(
   "write",
   Effect.gen(function* () {
+    const mutation = yield* FileMutation.Service
     const lsp = yield* LSP.Service
     const fs = yield* FSUtil.Service
     const events = yield* EventV2Bridge.Service
@@ -44,7 +46,7 @@ export const WriteTool = Tool.define(
           yield* assertExternalDirectoryEffect(ctx, filepath)
 
           const exists = yield* fs.existsSafe(filepath)
-          const source = exists ? yield* Bom.readFile(fs, filepath) : { bom: false, text: "" }
+          const source = exists ? yield* Bom.readFile(fs, filepath) : { bom: false, text: "", bytes: new Uint8Array() }
           const next = Bom.split(params.content)
           const desiredBom = source.bom || next.bom
           const contentOld = source.text
@@ -61,7 +63,11 @@ export const WriteTool = Tool.define(
             },
           })
 
-          yield* fs.writeWithDirs(filepath, Bom.join(contentNew, desiredBom))
+          const target = { canonical: filepath, resource: filepath }
+          const content = Bom.join(contentNew, desiredBom)
+          yield* exists
+            ? mutation.writeIfUnchanged({ target, content, expected: source.bytes })
+            : mutation.create({ target, content })
           if (yield* format.file(filepath)) {
             yield* Bom.syncFile(fs, filepath, desiredBom)
           }

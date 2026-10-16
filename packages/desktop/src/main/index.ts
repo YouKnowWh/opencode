@@ -3,7 +3,8 @@ import { mkdirSync, rmSync } from "node:fs"
 import * as http from "node:http"
 import { createServer } from "node:net"
 import { homedir, tmpdir } from "node:os"
-import { join } from "node:path"
+import { join, dirname } from "node:path"
+import { fileURLToPath, pathToFileURL } from "node:url"
 import { getCACertificates, setDefaultCACertificates } from "node:tls"
 import type { Event } from "electron"
 import { app, BrowserWindow } from "electron"
@@ -13,7 +14,7 @@ import contextMenu from "electron-context-menu"
 
 import type { ServerReadyData } from "../preload/types"
 import { checkAppExists, resolveAppPath } from "./apps"
-import { CHANNEL } from "./constants"
+import { CHANNEL, MODELHUB_BUILD } from "./constants"
 import { registerIpcHandlers, sendDeepLinks, sendMenuCommand } from "./ipc"
 import { forwardInitializationFailure } from "./initialization"
 import { exportDebugLogs, initCrashReporter, initLogging, startNetLog, write as writeLog } from "./logging"
@@ -60,8 +61,8 @@ const APP_IDS: Record<string, string> = {
   beta: "ai.opencode.desktop.beta",
   prod: "ai.opencode.desktop",
 }
-const TEST_ONBOARDING = process.env.OPENCODE_TEST_ONBOARDING === "1"
-const SIDECAR_VERSION = process.env.OPENCODE_SIDECAR_V2 === "1" ? "v2" : "v1"
+const TEST_ONBOARDING = !MODELHUB_BUILD && process.env.OPENCODE_TEST_ONBOARDING === "1"
+const SIDECAR_VERSION = !MODELHUB_BUILD && process.env.OPENCODE_SIDECAR_V2 === "1" ? "v2" : "v1"
 const jsCallStackFeature = "DocumentPolicyIncludeJSCallStacksInCrashReports"
 
 let logger: ReturnType<typeof initLogging>
@@ -122,7 +123,27 @@ const main = Effect.gen(function* () {
 
   process.env.OPENCODE_DISABLE_EMBEDDED_WEB_UI = "true"
 
-  const appId = app.isPackaged ? APP_IDS[CHANNEL] : "ai.opencode.desktop.dev"
+  if (MODELHUB_BUILD) {
+    const bootstrap = app.isPackaged
+      ? join(process.resourcesPath, "modelhub/launch.mjs")
+      : join(dirname(fileURLToPath(import.meta.url)), "../../../../modelhub/launch.mjs")
+    const prepared = yield* Effect.promise(async () => {
+      const { prepare } = await import(pathToFileURL(bootstrap).href)
+      return prepare()
+    })
+    for (const name of Object.keys(process.env)) {
+      if (
+        name.startsWith("OPENCODE_") ||
+        name.startsWith("MODELHUB_") ||
+        /^(OPENAI|ANTHROPIC|DEEPSEEK|SILICONFLOW|GOOGLE|GEMINI)_/.test(name)
+      )
+        delete process.env[name]
+    }
+    Object.assign(process.env, prepared.env, { SHELL: "/usr/bin/false" })
+    process.env.OPENCODE_DISABLE_EMBEDDED_WEB_UI = "true"
+  }
+
+  const appId = MODELHUB_BUILD ? "ai.modelhub.opencode" : app.isPackaged ? APP_IDS[CHANNEL] : "ai.opencode.desktop.dev"
   const onboardingTestRoot = ((): string | undefined => {
     if (!TEST_ONBOARDING) return
 
@@ -138,7 +159,7 @@ const main = Effect.gen(function* () {
     process.env.XDG_STATE_HOME = join(root, "state")
     return root
   })()
-  app.setName(app.isPackaged ? APP_NAMES[CHANNEL] : "OpenCode Dev")
+  app.setName(MODELHUB_BUILD ? "OpenCode Model Hub" : app.isPackaged ? APP_NAMES[CHANNEL] : "OpenCode Dev")
   app.setAppUserModelId(appId)
   app.setPath(
     "userData",
@@ -203,7 +224,7 @@ const main = Effect.gen(function* () {
   const shellEnv = preferAppEnv(app.getPath("userData"))
 
   app.on("second-instance", (_event: Event, argv: string[]) => {
-    const urls = argv.filter((arg: string) => arg.startsWith("opencode://"))
+    const urls = argv.filter((arg: string) => arg.startsWith(MODELHUB_BUILD ? "modelhub-opencode://" : "opencode://"))
     if (urls.length) {
       logger.log("deep link received via second-instance", { urls })
       emitDeepLinks(urls)
@@ -217,6 +238,7 @@ const main = Effect.gen(function* () {
 
   app.on("open-url", (event: Event, url: string) => {
     event.preventDefault()
+    if (!url.startsWith(MODELHUB_BUILD ? "modelhub-opencode://" : "opencode://")) return
     logger.log("deep link received via open-url", { url })
     emitDeepLinks([url])
   })
@@ -254,7 +276,7 @@ const main = Effect.gen(function* () {
 
   yield* Effect.promise(() => app.whenReady())
 
-  if (!TEST_ONBOARDING) migrate()
+  if (!TEST_ONBOARDING && !MODELHUB_BUILD) migrate()
   yield* Effect.promise(() => cleanupStoreFiles(app.getPath("userData"))).pipe(
     Effect.tap((result) =>
       Effect.sync(() => {
@@ -268,7 +290,7 @@ const main = Effect.gen(function* () {
       }),
     ),
   )
-  app.setAsDefaultProtocolClient("opencode")
+  app.setAsDefaultProtocolClient(MODELHUB_BUILD ? "modelhub-opencode" : "opencode")
   registerRendererProtocol()
   setDockIcon()
   const updater = setupAutoUpdater(stopSidecars)

@@ -1,3 +1,4 @@
+import { FileMutation } from "@opencode-ai/core/file-mutation"
 import { afterEach, describe, expect } from "bun:test"
 import path from "path"
 import fs from "fs/promises"
@@ -32,7 +33,15 @@ afterEach(async () => {
 })
 
 const layer = LayerNode.compile(
-  LayerNode.group([LSP.node, FSUtil.node, Format.node, EventV2Bridge.node, Truncate.node, Agent.node]),
+  LayerNode.group([
+    LSP.node,
+    FSUtil.node,
+    FileMutation.node,
+    Format.node,
+    EventV2Bridge.node,
+    Truncate.node,
+    Agent.node,
+  ]),
 )
 
 const it = testEffect(layer)
@@ -571,4 +580,27 @@ describe("tool.edit", () => {
       }),
     )
   })
+})
+
+describe("shared-project edit protection", () => {
+  for (const original of ["before", "\uFEFFbefore", ""]) {
+    it.instance(`preserves external edits during approval (${JSON.stringify(original)})`, () =>
+      Effect.gen(function* () {
+        const test = yield* TestInstance
+        const filePath = path.join(test.directory, "shared.txt")
+        if (original) yield* put(filePath, original)
+        const exit = yield* Effect.exit(
+          run(
+            { filePath, oldString: original ? "before" : "", newString: "after" },
+            {
+              ...ctx,
+              ask: () => Effect.promise(() => fs.writeFile(filePath, "Codex edit")),
+            },
+          ),
+        )
+        expect(Exit.isFailure(exit)).toBe(true)
+        expect(yield* load(filePath)).toBe("Codex edit")
+      }),
+    )
+  }
 })

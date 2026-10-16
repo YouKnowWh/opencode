@@ -1,3 +1,4 @@
+import { FileMutation } from "@opencode-ai/core/file-mutation"
 import { describe, expect } from "bun:test"
 import path from "path"
 import * as fs from "fs/promises"
@@ -17,7 +18,15 @@ import { testEffect } from "../lib/effect"
 
 const it = testEffect(
   LayerNode.compile(
-    LayerNode.group([LSP.node, FSUtil.node, Format.node, EventV2Bridge.node, Truncate.node, Agent.node]),
+    LayerNode.group([
+      LSP.node,
+      FSUtil.node,
+      FileMutation.node,
+      Format.node,
+      EventV2Bridge.node,
+      Truncate.node,
+      Agent.node,
+    ]),
   ),
 )
 
@@ -546,4 +555,43 @@ EOF`
       expect(yield* readText(target)).toBe(`He said "hi"\nsome${emDash}dash\nend\n`)
     }),
   )
+})
+
+describe("shared-project patch protection", () => {
+  for (const operation of ["update", "delete", "move", "add", "destination", "bom"]) {
+    it.instance(`rejects external ${operation} changes before touching the batch`, () =>
+      Effect.gen(function* () {
+        const test = yield* TestInstance
+        const first = path.join(test.directory, "first.txt")
+        const shared = path.join(test.directory, "shared.txt")
+        const destination = path.join(test.directory, "destination.txt")
+        yield* writeText(first, "before\n")
+        if (operation !== "add") yield* writeText(shared, "before\n")
+        const hunk =
+          operation === "delete"
+            ? "*** Delete File: shared.txt"
+            : operation === "add"
+              ? "*** Add File: shared.txt\n+after"
+              : `*** Update File: shared.txt\n${["move", "destination"].includes(operation) ? "*** Move to: destination.txt\n" : ""}@@\n-before\n+after`
+        const exit = yield* Effect.exit(
+          execute(
+            { patchText: `*** Begin Patch\n*** Update File: first.txt\n@@\n-before\n+after\n${hunk}\n*** End Patch` },
+            {
+              ...baseCtx,
+              ask: () =>
+                writeText(
+                  operation === "destination" ? destination : shared,
+                  operation === "bom" ? "\uFEFFbefore\n" : "Codex edit",
+                ),
+            },
+          ),
+        )
+        expect(Exit.isFailure(exit)).toBe(true)
+        expect(yield* readText(first)).toBe("before\n")
+        expect(yield* readText(operation === "destination" ? destination : shared)).toBe(
+          operation === "bom" ? "\uFEFFbefore\n" : "Codex edit",
+        )
+      }),
+    )
+  }
 })

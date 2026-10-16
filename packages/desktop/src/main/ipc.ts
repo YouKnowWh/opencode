@@ -1,7 +1,10 @@
+import { homedir } from "node:os"
+import { extensionState, saveExtensionState } from "../../../../modelhub/extensions.mjs"
+import type { ModelHubExtensions } from "../../../app/src/modelhub/extensions"
 import { execFile } from "node:child_process"
 import { stat } from "node:fs/promises"
 import { basename, join } from "node:path"
-import { app, BrowserWindow, clipboard, dialog, ipcMain, shell } from "electron"
+import { app, BrowserWindow, clipboard, dialog, ipcMain, shell, net } from "electron"
 import type { IpcMainEvent, IpcMainInvokeEvent } from "electron"
 import type { DesktopMenuAction } from "@opencode-ai/app/desktop-menu"
 import { parseDesktopNativeBundle, type DesktopNativeBundle } from "@opencode-ai/app/i18n/desktop-native"
@@ -24,6 +27,9 @@ import type { UpdaterController } from "./updater-controller"
 import { createUpdaterSubscriptions } from "./updater-subscriptions"
 import { createDesktopDraftStore } from "./draft-store"
 import { nativeT } from "./native-translations"
+import { getModelHubRuntime } from "./modelhub-runtime"
+import { isTrustedRendererUrl } from "./windows"
+import { upstreamVersion } from "../../../app/src/modelhub/upstream"
 
 const pickerFilters = (ext?: string[]) => {
   if (!ext || ext.length === 0) return undefined
@@ -249,6 +255,50 @@ export function registerIpcHandlers(deps: Deps) {
     const id = getWindowID(win)
     if (!id) throw new Error("Window ID not found")
     return id
+  })
+  ipcMain.handle("modelhub-login", async (event: IpcMainInvokeEvent, value: { username: string; password: string }) => {
+    if (!isTrustedRendererUrl(event.senderFrame?.url) || event.senderFrame !== event.sender.mainFrame)
+      throw new Error("Untrusted console login sender")
+    await event.sender.session.clearAuthCache()
+    return getModelHubRuntime().account.signIn({ ...value, remember: false })
+  })
+  const extensionsFile = join(homedir(), ".local/share/modelhub-opencode/profiles/desktop/extensions.json")
+  const modelhubHandlers = {
+    "modelhub-extensions-get": () => extensionState(extensionsFile),
+    "modelhub-extensions-save": (_event: IpcMainInvokeEvent, value: ModelHubExtensions) =>
+      saveExtensionState(extensionsFile, value),
+    "modelhub-account-get": () => getModelHubRuntime().account.state(),
+    "modelhub-account-signin": async (
+      event: IpcMainInvokeEvent,
+      value: { username: string; password: string; remember: boolean },
+    ) => {
+      await event.sender.session.clearAuthCache()
+      return getModelHubRuntime().account.signIn(value)
+    },
+    "modelhub-account-signout": async (event: IpcMainInvokeEvent) => {
+      await getModelHubRuntime().account.signOut()
+      await event.sender.session.clearAuthCache()
+      await event.sender.session.clearStorageData({
+        origin: "https://llm.alex045.xyz",
+        storages: ["cookies", "localstorage", "indexdb", "cachestorage"],
+      })
+    },
+    "modelhub-account-prepare": (event: IpcMainInvokeEvent) => getModelHubRuntime().account.prepare(event.sender.id),
+    "modelhub-account-snapshot": () => getModelHubRuntime().management.snapshot(),
+    "modelhub-account-model": (_event: IpcMainInvokeEvent, value: { roleId: string; model: string }) =>
+      getModelHubRuntime().management.selectModel(value),
+  }
+  Object.entries(modelhubHandlers).forEach(([channel, handler]) => {
+    ipcMain.handle(channel, (event: IpcMainInvokeEvent, value) => {
+      if (!isTrustedRendererUrl(event.senderFrame?.url) || event.senderFrame !== event.sender.mainFrame)
+        throw new Error("Untrusted Model Hub account sender")
+      return handler(event, value)
+    })
+  })
+  ipcMain.handle("modelhub-upstream-version", (event: IpcMainInvokeEvent) => {
+    if (!isTrustedRendererUrl(event.senderFrame?.url) || event.senderFrame !== event.sender.mainFrame)
+      throw new Error("Untrusted update check sender")
+    return upstreamVersion((url, options) => net.fetch(url, options))
   })
 
   ipcMain.handle("get-window-focused", (event: IpcMainInvokeEvent) => {

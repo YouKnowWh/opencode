@@ -11,6 +11,7 @@ import { useServerSync } from "@/context/server-sync"
 import { DialogConnectProvider, useProviderConnectController } from "../dialog-connect-provider"
 import { DialogCustomProvider } from "../dialog-custom-provider"
 import { SettingsListV2 } from "./parts/list"
+import { useSettingsDialog } from "../settings-dialog"
 import "./settings-v2.css"
 
 type ProviderSource = "env" | "api" | "config" | "custom"
@@ -40,6 +41,8 @@ export const SettingsProvidersV2: Component<{
   const serverSync = useServerSync()
   const providers = useProviders(props.directory)
   const providerConnect = useProviderConnectController({ onBack: props.onBack })
+  const openModelHub = useSettingsDialog("modelhub")
+  const isModelHub = (id: string) => id === "modelhub-arona" || id === "modelhub-prana"
 
   const connect = (provider?: string) => {
     providerConnect.select(provider)
@@ -51,6 +54,7 @@ export const SettingsProvidersV2: Component<{
       .connected()
       .filter((p) => p.id !== "opencode" || Object.values(p.models).find((m) => m.cost?.input))
   })
+  const hasModelHub = createMemo(() => connected().some((item) => isModelHub(item.id)))
 
   const popular = createMemo(() => {
     const connectedIDs = new Set(connected().map((p) => p.id))
@@ -158,7 +162,28 @@ export const SettingsProvidersV2: Component<{
                 <div class="settings-v2-provider-empty">{language.t("settings.providers.connected.empty")}</div>
               }
             >
-              <For each={connected()}>
+              <Show when={hasModelHub()}>
+                <div class="settings-v2-provider-row" data-component="modelhub-provider">
+                  <div class="settings-v2-provider-lead">
+                    <ProviderIcon
+                      id="synthetic"
+                      width={PROVIDER_ICON_SIZE}
+                      height={PROVIDER_ICON_SIZE}
+                      class="settings-v2-provider-icon shrink-0"
+                    />
+                    <span class="settings-v2-provider-name">{language.t("modelhub.providerName")}</span>
+                  </div>
+                  <ButtonV2
+                    size="normal"
+                    variant="ghost-muted"
+                    title={language.t("modelhub.open")}
+                    onClick={openModelHub}
+                  >
+                    {language.t("modelhub.management")}
+                  </ButtonV2>
+                </div>
+              </Show>
+              <For each={connected().filter((item) => !isModelHub(item.id))}>
                 {(item) => (
                   <div class="settings-v2-provider-row group">
                     <div class="settings-v2-provider-lead">
@@ -192,75 +217,77 @@ export const SettingsProvidersV2: Component<{
           </SettingsListV2>
         </div>
 
-        <div class="settings-v2-section">
-          <h3 class="settings-v2-section-title">{language.t("settings.providers.section.popular")}</h3>
-          <SettingsListV2>
-            <For each={popular()}>
-              {(item) => (
-                <div class="settings-v2-provider-row">
+        <Show when={!hasModelHub()}>
+          <div class="settings-v2-section">
+            <h3 class="settings-v2-section-title">{language.t("settings.providers.section.popular")}</h3>
+            <SettingsListV2>
+              <For each={popular()}>
+                {(item) => (
+                  <div class="settings-v2-provider-row">
+                    <div class="settings-v2-provider-lead">
+                      <ProviderIcon
+                        id={item.id}
+                        width={PROVIDER_ICON_SIZE}
+                        height={PROVIDER_ICON_SIZE}
+                        class="settings-v2-provider-icon shrink-0"
+                      />
+                      <div class="settings-v2-provider-copy">
+                        <div class="settings-v2-provider-main">
+                          <span class="settings-v2-provider-name">{item.name}</span>
+                          <Show when={item.id === "opencode" || item.id === "opencode-go"}>
+                            <Tag>{language.t("dialog.provider.tag.recommended")}</Tag>
+                          </Show>
+                        </div>
+                        <Show when={note(item.id)}>
+                          {(key) => <p class="settings-v2-provider-description">{language.t(key())}</p>}
+                        </Show>
+                      </div>
+                    </div>
+                    <ButtonV2 size="normal" variant="neutral" icon="plus" onClick={() => connect(item.id)}>
+                      {language.t("common.connect")}
+                    </ButtonV2>
+                  </div>
+                )}
+              </For>
+
+              <Show when={protocol() === "v1"}>
+                <div class="settings-v2-provider-row" data-component="custom-provider-section">
                   <div class="settings-v2-provider-lead">
                     <ProviderIcon
-                      id={item.id}
+                      id="synthetic"
                       width={PROVIDER_ICON_SIZE}
                       height={PROVIDER_ICON_SIZE}
                       class="settings-v2-provider-icon shrink-0"
                     />
                     <div class="settings-v2-provider-copy">
                       <div class="settings-v2-provider-main">
-                        <span class="settings-v2-provider-name">{item.name}</span>
-                        <Show when={item.id === "opencode" || item.id === "opencode-go"}>
-                          <Tag>{language.t("dialog.provider.tag.recommended")}</Tag>
-                        </Show>
+                        <span class="settings-v2-provider-name">{language.t("provider.custom.title")}</span>
+                        <Tag>{language.t("settings.providers.tag.custom")}</Tag>
                       </div>
-                      <Show when={note(item.id)}>
-                        {(key) => <p class="settings-v2-provider-description">{language.t(key())}</p>}
-                      </Show>
+                      <p class="settings-v2-provider-description">
+                        {language.t("settings.providers.custom.description")}
+                      </p>
                     </div>
                   </div>
-                  <ButtonV2 size="normal" variant="neutral" icon="plus" onClick={() => connect(item.id)}>
+                  <ButtonV2
+                    size="normal"
+                    variant="neutral"
+                    icon="plus"
+                    onClick={() => {
+                      dialog.show(() => <DialogCustomProvider onBack={dialog.close} />)
+                    }}
+                  >
                     {language.t("common.connect")}
                   </ButtonV2>
                 </div>
-              )}
-            </For>
+              </Show>
+            </SettingsListV2>
 
-            <Show when={protocol() === "v1"}>
-              <div class="settings-v2-provider-row" data-component="custom-provider-section">
-                <div class="settings-v2-provider-lead">
-                  <ProviderIcon
-                    id="synthetic"
-                    width={PROVIDER_ICON_SIZE}
-                    height={PROVIDER_ICON_SIZE}
-                    class="settings-v2-provider-icon shrink-0"
-                  />
-                  <div class="settings-v2-provider-copy">
-                    <div class="settings-v2-provider-main">
-                      <span class="settings-v2-provider-name">{language.t("provider.custom.title")}</span>
-                      <Tag>{language.t("settings.providers.tag.custom")}</Tag>
-                    </div>
-                    <p class="settings-v2-provider-description">
-                      {language.t("settings.providers.custom.description")}
-                    </p>
-                  </div>
-                </div>
-                <ButtonV2
-                  size="normal"
-                  variant="neutral"
-                  icon="plus"
-                  onClick={() => {
-                    dialog.show(() => <DialogCustomProvider onBack={dialog.close} />)
-                  }}
-                >
-                  {language.t("common.connect")}
-                </ButtonV2>
-              </div>
-            </Show>
-          </SettingsListV2>
-
-          <button type="button" class="settings-v2-providers-view-all" onClick={() => connect()}>
-            {language.t("dialog.provider.viewAll")}
-          </button>
-        </div>
+            <button type="button" class="settings-v2-providers-view-all" onClick={() => connect()}>
+              {language.t("dialog.provider.viewAll")}
+            </button>
+          </div>
+        </Show>
       </div>
     </>
   )

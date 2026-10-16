@@ -1,0 +1,9 @@
+{
+  "name": "opencode-modelhub-local",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@opencode-ai/plugin": "1.19.0"
+  },
+  "version": "0.1.0"
+}

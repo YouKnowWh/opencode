@@ -1,0 +1,69 @@
+/* Reuse OpenCode v2 surfaces, typography and controls; no parallel color system. */
+[data-component="modelhub-settings"] {
+  min-height: 100%;
+}
+[data-component="modelhub-settings"] :is(p, form) {
+  margin: 0;
+}
+.mh-role-controls,
+.mh-row-actions,
+.mh-account-actions,
+.mh-console-heading {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+.mh-account-actions {
+  margin-top: 16px;
+}
+.mh-console-heading {
+  justify-content: space-between;
+}
+[data-component="modelhub-account"] [data-component="text-input-v2"] {
+  width: min(280px, 100%);
+}
+.mh-role-controls {
+  max-width: 100%;
+}
+.mh-role-controls [data-component="select-v2"] {
+  min-width: 0;
+  max-width: 320px;
+}
+.mh-error {
+  color: var(--v2-text-text-error, #b42318);
+  font-size: 13px;
+  line-height: 1.5;
+}
+[data-component="modelhub-settings"] iframe {
+  width: 100%;
+  min-height: 540px;
+  border: 0.5px solid var(--v2-border-border-muted);
+  border-radius: 8px;
+  background: var(--v2-background-bg-base);
+}
+@media (max-width: 640px) {
+  .mh-role-controls,
+  .mh-row-actions {
+    flex-wrap: wrap;
+  }
+  [data-component="modelhub-settings"] iframe {
+    min-height: 420px;
+  }
+}
+
+.mh-extension-form {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 16px !important;
+}
+.mh-extension-form [data-component="text-input-v2"] {
+  flex: 1 1 180px;
+  min-width: 0;
+}
+[data-component="modelhub-settings"] [data-slot="settings-v2-row-title"],
+[data-component="modelhub-settings"] [data-slot="settings-v2-row-description"] {
+  overflow-wrap: anywhere;
+}
