@@ -245,7 +245,17 @@ role. See [capability coverage and limitations](project-agent-coverage.md) befor
 assuming that Codex cloud tools or account-connected Apps are portable.
 
 The one-shot desktop build and synthetic Agent/Skill/MCP service checks passed;
-the MCP checks used disabled endpoints and made no model API calls. Packaging and
-installation of these changes are pending, so the installed client still uses
-the earlier build. GUI acceptance and live model delegation remain pending.
-The server memory-evaluation PR4 is not deployed.
+the MCP checks used disabled endpoints and made no model API calls. The macOS
+arm64 package was backed up, installed and reopened on 2026-10-16, leaving the
+official app untouched. Its archive SHA-256 is
+`c9bd8d9e72584562491659f732ad872b265deff482ac82ef5c75e5b682b3562b`.
+Native accessibility state exposed the new extension controls and restored the
+existing account login. Screenshots did not reliably follow the native settings
+state, so visual layout, folder-picker interaction, live model delegation and
+MCP connection/OAuth remain pending acceptance.
+
+Server memory evaluation is delivered separately in hermes-infra PR4. Its initial
+release was activated on 2026-10-16; selected source-backed mobile preferences
+were reviewed, persisted, read using the owning role key and denied to the other
+role. This does not establish future automatic extraction or universal recall;
+those require separate live checks rather than desktop test results.
