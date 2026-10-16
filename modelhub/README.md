@@ -24,8 +24,9 @@ branch; use that same base for a future PR, not the moving upstream `dev`.
   A persisted selection is a convenience, not a lifetime authorization boundary.
 - Read/search memory tools use the executing role's key; memory proposals need
   permission and remain subject to server review. Each memory call requires its
-  host-provided `ctx.extra.model` to match `ctx.agent`; missing or mismatched
-  execution identities are rejected before a memory request is sent. An in-flight
+  host-provided `ctx.extra.model` to resolve to the role of `ctx.agent`, including
+  same-role explore/worker helpers; missing or mismatched execution identities
+  are rejected before a memory request is sent. An in-flight
   tool keeps the role of the request that started it even after a role switch.
   Auxiliary title/summary calls follow their own request's provider and do not
   change the persisted role selection.
@@ -151,8 +152,9 @@ authorization, the previous fork was backed up and the repair bundle was install
 and reopened through the native app. The installed-app checks below distinguish the earlier role
 handoff from the newer rejected-login check; each verifies only its tested flow.
 
-Windows/Linux, history migration and a plugins/Skills configuration manager
-remain unverified or unimplemented. No server code deployment or legacy
+Windows/Linux and history migration remain unverified or unimplemented.
+Native Skills/MCP settings are implemented; their installed-app acceptance is
+pending with the shared-project changes below. No server code deployment or legacy
 extraction-error repair is included in this fork.
 
 ### Global account and native settings — 2026-10-16
@@ -241,3 +243,9 @@ Role-specific foreground explore/worker helpers preserve memory scope; delegatio
 still requires user or project authorization. `/review` stays with the selected
 role. See [capability coverage and limitations](project-agent-coverage.md) before
 assuming that Codex cloud tools or account-connected Apps are portable.
+
+The one-shot desktop build and synthetic Agent/Skill/MCP service checks passed;
+the MCP checks used disabled endpoints and made no model API calls. Packaging and
+installation of these changes are pending, so the installed client still uses
+the earlier build. GUI acceptance and live model delegation remain pending.
+The server memory-evaluation PR4 is not deployed.
