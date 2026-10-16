@@ -15,6 +15,17 @@
 
 ## Unreleased
 
+- Open existing Codex project folders without copying source files; load bounded
+  project AGENTS.md while keeping managed routing isolated.
+- Recheck edit/write/patch inputs after approval, exclusively create new files,
+  and reject stale changes before overwriting another client's edits.
+- Add same-role foreground explore/worker helpers and retain the selected role
+  for review requests; helper traffic is auxiliary for memory evaluation.
+- Add native persistent Skills folders and remote HTTPS MCP settings, with
+  bounded private files and revision conflicts across windows. Apply changes on
+  the next client start without interrupting running work.
+
+
 - Show one ModelHub entry in provider settings, with one management action and no
   duplicate role rows or direct-provider connection section in the managed profile.
 - Share one Model Hub account across projects and windows, with optional encrypted

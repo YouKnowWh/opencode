@@ -81,8 +81,12 @@ Each contains `role` and `key`. Files must belong to the current user and have
 mode `0600`; directories must have mode `0700`. Never commit these files or paste
 them in an issue. The combined desktop profile is created under `profiles/desktop`
 with isolated config, data, cache, state and persisted current-role selection.
-Project configuration is disabled. Bootstrap regenerates its managed configuration;
-manual edits to that configuration are not an extension-management interface.
+Project provider/plugin configuration is disabled. The managed plugin separately loads
+bounded project AGENTS.md instructions. Bootstrap regenerates the managed routing
+configuration; use Settings → Model Hub → Project and extensions for persistent
+Skills folders and remote HTTPS MCP endpoints. Extensions apply at the next client
+start and cannot override role providers, keys or permissions. Stale saves from a
+second window are rejected rather than overwriting newer settings.
 `32768`/`4096` limits are conservative client defaults, not measured capabilities.
 
 The role key environment variables are removed from tool-shell environments.
@@ -108,10 +112,10 @@ cd ../desktop
 bun typecheck
 bun test ./src/main/modelhub-login.test.ts ./src/main/modelhub-account.test.ts ./src/main/modelhub-vault.test.ts ./src/main/modelhub-management.test.ts ./electron-builder.config.test.ts
 cd ../../modelhub
-node --test bindings.test.mjs plugin.test.mjs
+node --test *.test.mjs
 node launch.mjs --config-check
 cd ../packages/opencode
-OPENCODE_VERSION=1.19.0-modelhub.1 OPENCODE_CHANNEL=dev bun script/build-node.ts
+OPENCODE_VERSION=1.19.0-modelhub.2 OPENCODE_CHANNEL=dev bun script/build-node.ts
 cd ../desktop
 bun ./scripts/copy-icons.ts dev
 bun ./scripts/copy-metainfo.ts dev
@@ -225,3 +229,15 @@ server-error, timeout and iframe-load-failure paths have unit-test coverage,
 but were not exercised in this installed-app check. No saved administrator
 credentials were read or changed. Screenshots, accessibility output and bundle
 backups are retained privately and are not included in the repository.
+
+
+## Shared projects and agent tools
+
+Open the same project folder as Codex; project files and AGENTS.md do not need a
+migration. The clients keep separate conversation and credential stores. Existing
+file tools now recheck bytes after approval to preserve changes made by the other
+client. This is optimistic conflict detection, not a cross-process transaction.
+Role-specific foreground explore/worker helpers preserve memory scope; delegation
+still requires user or project authorization. `/review` stays with the selected
+role. See [capability coverage and limitations](project-agent-coverage.md) before
+assuming that Codex cloud tools or account-connected Apps are portable.
