@@ -30,6 +30,7 @@ export const dict = {
   "modelhub.error.storage":
     "Could not securely save or clear the login. Check the system credential store, or sign in without remembering it.",
   "modelhub.title": "Model Hub",
+  "modelhub.providerName": "ModelHub",
   "modelhub.description": "Manage role models in one place. Changes apply to the next request.",
   "modelhub.loginNotice":
     "Sign in to your Model Hub console separately. Client keys stay on this device. Switching roles keeps this conversation and shares its history; long-term memory stays role-local.",

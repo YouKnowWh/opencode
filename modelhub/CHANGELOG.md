@@ -15,6 +15,8 @@
 
 ## Unreleased
 
+- Show one ModelHub entry in provider settings, with one management action and no
+  duplicate role rows or direct-provider connection section in the managed profile.
 - Share one Model Hub account across projects and windows, with optional encrypted
   login restoration after restart and global sign out.
 - Use OpenCode's native settings controls for the account and authorized role LLMs;

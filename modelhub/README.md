@@ -12,6 +12,11 @@ branch; use that same base for a future PR, not the moving upstream `dev`.
 - Settings → Model Hub uses OpenCode's native v2 settings rows and model selectors.
   The server console opens only on demand for advanced management. A role's real-model change applies to subsequent requests from
   **all clients of that role**, not just this desktop window.
+- Settings → Providers groups the provisioned role connections into one
+  **ModelHub** entry. Manage opens the native Model Hub settings. While these
+  managed connections are present, the popular/custom-provider connection section
+  is hidden. Role keys, protocol identities and existing other connections are
+  preserved; grouping is only a presentation change.
 - ARONA uses Chat Completions; PRANA uses native Responses. Each has its own key.
 - Changing roles keeps the same project and conversation. The user explicitly
   authorized sharing its complete history for role handoff. Each new request uses

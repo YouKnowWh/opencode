@@ -26,6 +26,7 @@ export const dict = {
   "modelhub.refreshModels": "刷新",
   "modelhub.error.storage": "无法安全保存或清除登录信息。请检查系统凭据存储，或取消保持登录后重试。",
   "modelhub.title": "Model Hub",
+  "modelhub.providerName": "ModelHub",
   "modelhub.description": "统一管理角色模型，修改后对下一次请求生效。",
   "modelhub.loginNotice":
     "请单独登录 Model Hub 控制台，客户端密钥保留在本机。切换角色保留当前会话与上文，长期记忆仍按角色隔离。",
