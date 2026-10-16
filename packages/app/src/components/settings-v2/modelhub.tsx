@@ -12,6 +12,7 @@ import { createModelHubConsole } from "@/modelhub/console"
 import { SettingsListV2 } from "./parts/list"
 import { SettingsRowV2 } from "./parts/row"
 import { ModelHubAccountSection } from "./modelhub-account"
+import { ModelHubExtensionsSection } from "./modelhub-extensions"
 import "./modelhub.css"
 
 export function SettingsModelHub() {
@@ -174,6 +175,7 @@ export function SettingsModelHub() {
             </Show>
           </section>
         </Show>
+        <ModelHubExtensionsSection />
         <section class="settings-v2-section">
           <h3 class="settings-v2-section-title">{language.t("modelhub.upstream")}</h3>
           <SettingsListV2>

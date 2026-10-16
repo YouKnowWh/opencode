@@ -39,6 +39,7 @@ export function prepare() {
     if (source.role !== role) throw new Error("密钥归属不一致")
     env[`MODELHUB_${role.toUpperCase()}_KEY`] = checkKey(source.key)
   }
+  const extensionsFile = path.join(home, "extensions.json")
   const config = desktopConfig(fileURLToPath(new URL("./plugin.mjs", import.meta.url)))
   const file = path.join(dirs.config, "opencode.json"),
     temp = file + "." + process.pid + ".tmp"
@@ -70,6 +71,7 @@ export function prepare() {
     OPENCODE_DISABLE_MODELS_FETCH: "1",
     OPENCODE_EXPERIMENTAL_DISABLE_FILEWATCHER: "1",
     MODELHUB_BINDINGS_DIR: dirs.bindings,
+    MODELHUB_EXTENSIONS_FILE: extensionsFile,
   })
   return { home, env }
 }

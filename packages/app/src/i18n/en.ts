@@ -1,6 +1,26 @@
 import { DESKTOP_NATIVE_ENGLISH } from "./desktop-native"
 
 export const dict = {
+  "modelhub.extensions.title": "Project and extensions",
+  "modelhub.extensions.project": "Shared project rules",
+  "modelhub.extensions.projectDescription":
+    "Open the same folder as Codex. Load its AGENTS.md; project provider settings stay isolated.",
+  "modelhub.extensions.enabled": "Enabled",
+  "modelhub.extensions.skills": "Skills folders",
+  "modelhub.extensions.skillsDescription":
+    "Choose existing folders containing Skills, including your Codex Skills. No files are copied.",
+  "modelhub.extensions.add": "Add folder",
+  "modelhub.extensions.remove": "Remove",
+  "modelhub.extensions.removePath": "Remove {{path}}",
+  "modelhub.extensions.mcpName": "MCP name",
+  "modelhub.extensions.mcpUrl": "HTTPS MCP endpoint",
+  "modelhub.extensions.addMcp": "Add MCP",
+  "modelhub.extensions.mcpDescription":
+    "Remote HTTPS MCP only; use the native MCP authentication flow. Do not put tokens in the URL. Plugins and local MCP processes are not imported automatically.",
+  "modelhub.extensions.saved": "Saved. Applies the next time this client starts. Active tasks were not interrupted.",
+  "modelhub.extensions.failed":
+    "Could not load or save extensions. Settings may have changed in another window. Check absolute Skills paths and unique MCP names with credential-free HTTPS URLs, then retry.",
+
   "modelhub.account": "Account",
   "modelhub.signIn": "Sign in",
   "modelhub.signOut": "Sign out",

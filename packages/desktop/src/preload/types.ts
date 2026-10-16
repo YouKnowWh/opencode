@@ -1,3 +1,4 @@
+import type { ModelHubExtensionsAPI } from "../../../app/src/modelhub/extensions"
 import type { ModelHubAccountAPI } from "../../../app/src/modelhub/account"
 import type { ModelHubLoginResult, ModelHubLoginError } from "../../../app/src/modelhub/login"
 import type { DesktopMenuAction } from "@opencode-ai/app/desktop-menu"
@@ -45,6 +46,7 @@ export type FatalRendererError = {
 }
 
 export type ElectronAPI = {
+  modelhubExtensions: ModelHubExtensionsAPI
   modelhubAccount: ModelHubAccountAPI
   modelhubLogin: (value: { username: string; password: string }) => Promise<ModelHubLoginResult>
   onModelhubError: (callback: (error: ModelHubLoginError) => void) => () => void

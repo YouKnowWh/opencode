@@ -1,3 +1,4 @@
+import type { ModelHubExtensionsAPI } from "@/modelhub/extensions"
 import type { ModelHubAccountAPI } from "@/modelhub/account"
 import type { ModelHubLoginResult, ModelHubLoginError } from "@/modelhub/login"
 import { createSimpleContext } from "@opencode-ai/ui/context"
@@ -31,6 +32,7 @@ export type FatalRendererErrorLog = {
 }
 
 type PlatformBase = {
+  modelhubExtensions?: ModelHubExtensionsAPI
   modelhubAccount?: ModelHubAccountAPI
   modelhubLogin?(value: { username: string; password: string }): Promise<ModelHubLoginResult>
   onModelhubError?(callback: (error: ModelHubLoginError) => void): () => void

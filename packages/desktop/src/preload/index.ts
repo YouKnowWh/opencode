@@ -12,6 +12,10 @@ const updaterHandler = (_: unknown, state: UpdaterState) => {
 
 const api: ElectronAPI = {
   killSidecar: () => ipcRenderer.invoke("kill-sidecar"),
+  modelhubExtensions: {
+    get: () => ipcRenderer.invoke("modelhub-extensions-get"),
+    save: (value) => ipcRenderer.invoke("modelhub-extensions-save", value),
+  },
   modelhubAccount: {
     state: () => ipcRenderer.invoke("modelhub-account-get"),
     signIn: (value) => ipcRenderer.invoke("modelhub-account-signin", value),

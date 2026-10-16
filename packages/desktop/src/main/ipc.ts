@@ -1,3 +1,6 @@
+import { homedir } from "node:os"
+import { extensionState, saveExtensionState } from "../../../../modelhub/extensions.mjs"
+import type { ModelHubExtensions } from "../../../app/src/modelhub/extensions"
 import { execFile } from "node:child_process"
 import { stat } from "node:fs/promises"
 import { basename, join } from "node:path"
@@ -259,7 +262,11 @@ export function registerIpcHandlers(deps: Deps) {
     await event.sender.session.clearAuthCache()
     return getModelHubRuntime().account.signIn({ ...value, remember: false })
   })
+  const extensionsFile = join(homedir(), ".local/share/modelhub-opencode/profiles/desktop/extensions.json")
   const modelhubHandlers = {
+    "modelhub-extensions-get": () => extensionState(extensionsFile),
+    "modelhub-extensions-save": (_event: IpcMainInvokeEvent, value: ModelHubExtensions) =>
+      saveExtensionState(extensionsFile, value),
     "modelhub-account-get": () => getModelHubRuntime().account.state(),
     "modelhub-account-signin": async (
       event: IpcMainInvokeEvent,

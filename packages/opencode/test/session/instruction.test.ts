@@ -262,3 +262,39 @@ describe("Instruction.systemPaths global config", () => {
     }),
   )
 })
+
+it.live("loads explicit project AGENTS while managed project config is disabled", () =>
+  provideTmpdirInstance((directory) =>
+    Effect.gen(function* () {
+      const file = path.join(directory, "AGENTS.md")
+      yield* write(file, "Shared Codex project rule: no watch tasks.")
+      const previous = process.env.OPENCODE_DISABLE_PROJECT_CONFIG
+      yield* Effect.acquireRelease(
+        Effect.sync(() => {
+          process.env.OPENCODE_DISABLE_PROJECT_CONFIG = "1"
+        }),
+        () =>
+          Effect.sync(() => {
+            if (previous === undefined) delete process.env.OPENCODE_DISABLE_PROJECT_CONFIG
+            else process.env.OPENCODE_DISABLE_PROJECT_CONFIG = previous
+          }),
+      )
+      const paths = yield* Effect.gen(function* () {
+        const instructions = yield* Instruction.Service
+        return yield* instructions.systemPaths()
+      }).pipe(
+        Effect.provide(
+          AppNodeBuilder.build(Instruction.node, [
+            [
+              Config.node,
+              Layer.succeed(Config.Service, TestConfig.make({ get: () => Effect.succeed({ instructions: [file] }) })),
+            ],
+            [Global.node, Global.layerWith({ home: directory, config: path.join(directory, "empty-global") })],
+            [RuntimeFlags.node, RuntimeFlags.layer({})],
+          ]),
+        ),
+      )
+      expect([...paths]).toEqual([file])
+    }),
+  ).pipe(Effect.scoped),
+)

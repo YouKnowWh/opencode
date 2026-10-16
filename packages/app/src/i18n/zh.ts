@@ -3,6 +3,25 @@ import { dict as en } from "./en"
 type Keys = keyof typeof en
 
 export const dict = {
+  "modelhub.extensions.title": "项目与扩展",
+  "modelhub.extensions.project": "共享项目规则",
+  "modelhub.extensions.projectDescription":
+    "直接打开 Codex 使用的同一文件夹，读取其中的 AGENTS.md；项目供应商配置仍保持独立。",
+  "modelhub.extensions.enabled": "已启用",
+  "modelhub.extensions.skills": "技能目录",
+  "modelhub.extensions.skillsDescription": "选择已有的技能目录，也可选择 Codex 的技能目录。不会复制文件。",
+  "modelhub.extensions.add": "添加目录",
+  "modelhub.extensions.remove": "移除",
+  "modelhub.extensions.removePath": "移除 {{path}}",
+  "modelhub.extensions.mcpName": "MCP 名称",
+  "modelhub.extensions.mcpUrl": "HTTPS MCP 地址",
+  "modelhub.extensions.addMcp": "添加 MCP",
+  "modelhub.extensions.mcpDescription":
+    "当前支持远程 HTTPS MCP，授权使用原生 MCP 登录流程。不要在地址中填写令牌。不会自动导入插件或本地 MCP 进程。",
+  "modelhub.extensions.saved": "已保存。下次启动客户端时生效，正在执行的任务未被中断。",
+  "modelhub.extensions.failed":
+    "无法读取或保存扩展，设置可能已被其他窗口更新。请检查绝对技能路径、不重复的 MCP 名称和不含凭据的 HTTPS 地址，然后重试。",
+
   "modelhub.account": "账户",
   "modelhub.signIn": "登录",
   "modelhub.signOut": "退出登录",

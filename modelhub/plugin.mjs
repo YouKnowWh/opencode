@@ -1,14 +1,36 @@
+import { existsSync, realpathSync, statSync } from "node:fs"
+import path from "node:path"
+import { loadExtensions } from "./extensions.mjs"
 import { tool } from "@opencode-ai/plugin"
 import { HubClient, checkKey } from "./hub-client.mjs"
 import { RoleBindings, modelRole } from "./bindings.mjs"
 
 function executionRole(ctx) {
   const role = modelRole(ctx.extra?.model)
-  if (ctx.agent !== role) throw new Error("记忆工具的模型与执行角色不一致")
+  if (![role, `${role}-explore`, `${role}-worker`].includes(ctx.agent))
+    throw new Error("记忆工具的模型与执行角色不一致")
   return role
 }
 
-export default async function ModelHub() {
+export default async function ModelHub(input = {}) {
+  const instructions = []
+  if (input.directory && input.worktree) {
+    const root = realpathSync(input.worktree === path.parse(input.worktree).root ? input.directory : input.worktree)
+    const directory = realpathSync(input.directory)
+    const relative = path.relative(root, directory)
+    if (relative === "" || (!relative.startsWith(`..${path.sep}`) && relative !== ".." && !path.isAbsolute(relative))) {
+      for (let current = directory; ; current = path.dirname(current)) {
+        const file = path.join(current, "AGENTS.md")
+        if (existsSync(file) && statSync(file).isFile()) {
+          const resolved = realpathSync(file)
+          const within = path.relative(root, resolved)
+          if (within !== ".." && !within.startsWith(`..${path.sep}`) && !path.isAbsolute(within))
+            instructions.unshift(resolved)
+        }
+        if (current === root) break
+      }
+    }
+  }
   const bindings = new RoleBindings(process.env.MODELHUB_BINDINGS_DIR)
   const clients = Object.fromEntries(
     ["arona", "prana"].map((role) => [role, new HubClient(role, process.env[`MODELHUB_${role.toUpperCase()}_KEY`])]),
@@ -18,24 +40,46 @@ export default async function ModelHub() {
     return clients[role].call(op, args, ctx.sessionID, ctx.abort)
   }
   return {
+    config: async (config) => {
+      config.instructions = [...new Set([...(config.instructions ?? []), ...instructions])]
+      const extensions = loadExtensions(process.env.MODELHUB_EXTENSIONS_FILE)
+      config.skills = {
+        ...config.skills,
+        paths: [...new Set([...(config.skills?.paths ?? []), ...extensions.skillsPaths])],
+      }
+      config.mcp = {
+        ...config.mcp,
+        ...Object.fromEntries(
+          extensions.mcp.map((entry) => [entry.name, { type: "remote", url: entry.url, enabled: entry.enabled }]),
+        ),
+      }
+    },
     "chat.message": async (input, output) => {
       const message = output.message
       const role = modelRole(message?.model)
       checkKey(clients[role].key)
-      if (message.agent !== role || message.sessionID !== input.sessionID) throw new Error("请选择与会话相符的角色")
+      if (![role, `${role}-explore`, `${role}-worker`].includes(message.agent) || message.sessionID !== input.sessionID)
+        throw new Error("请选择与会话相符的角色")
       bindings.select(input.sessionID, role)
     },
     "chat.headers": async (input, output) => {
       const role = modelRole(input.model)
       checkKey(clients[role].key)
-      if (!["title", "summary", "compaction"].includes(input.agent) && input.agent !== role)
+      if (
+        !["title", "summary", "compaction"].includes(input.agent) &&
+        ![role, `${role}-explore`, `${role}-worker`].includes(input.agent)
+      )
         throw new Error("模型与当前执行角色不一致")
       // Each request authenticates with its own selected role. Auxiliary calls
       // must not mutate the active role of a concurrently continuing conversation.
       if (!input.sessionID) throw new Error("缺少会话来源")
       Object.assign(output.headers, {
         "X-Session-ID": input.sessionID,
-        "X-Request-Purpose": ["title", "summary", "compaction"].includes(input.agent) ? "auxiliary" : "chat",
+        "X-Request-Purpose": ["title", "summary", "compaction", `${role}-explore`, `${role}-worker`].includes(
+          input.agent,
+        )
+          ? "auxiliary"
+          : "chat",
       })
     },
     "shell.env": async (_, output) => {

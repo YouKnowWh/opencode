@@ -51,3 +51,19 @@
     min-height: 420px;
   }
 }
+
+.mh-extension-form {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 16px !important;
+}
+.mh-extension-form [data-component="text-input-v2"] {
+  flex: 1 1 180px;
+  min-width: 0;
+}
+[data-component="modelhub-settings"] [data-slot="settings-v2-row-title"],
+[data-component="modelhub-settings"] [data-slot="settings-v2-row-description"] {
+  overflow-wrap: anywhere;
+}

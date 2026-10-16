@@ -86,7 +86,28 @@ test("same-session handoff keeps headers stable and each memory tool uses its ex
         },
       ),
     )
-    assert.equal(seen.length, 2)
+    const helper = { headers: {} }
+    await hooks["chat.headers"](
+      { sessionID: "ses_child", agent: "arona-explore", model: { providerID: "modelhub-arona", id: "arona" } },
+      helper,
+    )
+    assert.equal(helper.headers["X-Request-Purpose"], "auxiliary")
+    await hooks.tool.memory_search.execute(
+      { query: "test" },
+      {
+        agent: "arona-worker",
+        sessionID: "ses_child",
+        extra: { model: { providerID: "modelhub-arona", id: "arona" } },
+      },
+    )
+    assert.equal(seen.at(-1).authorization, "Bearer sk-test-arona")
+    await assert.rejects(
+      hooks["chat.headers"](
+        { sessionID: "ses_child", agent: "prana-worker", model: { providerID: "modelhub-arona", id: "arona" } },
+        { headers: {} },
+      ),
+    )
+    assert.equal(seen.length, 3)
   } finally {
     globalThis.fetch = original
     for (const name of ["MODELHUB_BINDINGS_DIR", "MODELHUB_ARONA_KEY", "MODELHUB_PRANA_KEY"]) {

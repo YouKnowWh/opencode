@@ -37,11 +37,40 @@ export function desktopConfig(pluginPath) {
             mode: "primary",
             model: `modelhub-${role}/${role}`,
             description: "服务端角色；真实模型和人设由 Model Hub 管理。",
+            permission: { task: { "*": "deny", [`${role}-explore`]: "ask", [`${role}-worker`]: "ask" } },
             prompt:
               "角色身份和基础人设由 Model Hub 注入。需要上文时先 memory_search 再 memory_read。memory_propose 仅提交待审核候选。不要创建开发服务器、watch 或后台进程。",
           },
         ]),
       ),
+      ...Object.fromEntries(
+        roles.flatMap((role) =>
+          ["explore", "worker"].map((kind) => [
+            `${role}-${kind}`,
+            {
+              mode: "subagent",
+              model: `modelhub-${role}/${role}`,
+              description:
+                kind === "explore"
+                  ? `Read-only project research for ${role.toUpperCase()}`
+                  : `Scoped implementation or review for ${role.toUpperCase()}`,
+              prompt:
+                "Use the current project AGENTS.md. Keep the assigned scope. Do not start dev servers, watch tasks or background processes. Report evidence and tests to the parent. Long-term memory belongs only to your executing role.",
+              permission: {
+                task: "deny",
+                ...(kind === "explore" ? { edit: "deny", shell: "deny", memory_propose: "deny" } : {}),
+              },
+            },
+          ]),
+        ),
+      ),
+    },
+    command: {
+      review: {
+        description: "Review the current project changes without editing files",
+        template:
+          "Review the uncommitted changes in this project, or the target specified in $ARGUMENTS. Follow AGENTS.md. Read diffs and related code, identify concrete bugs with file/line evidence, and report validation gaps. Do not change files or start background processes.",
+      },
     },
     // No global small_model: auxiliary agents must follow this session's provider.
     plugin: [pathToFileURL(pluginPath).href],
