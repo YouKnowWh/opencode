@@ -168,10 +168,27 @@ The installed `app.asar` matches the packaged SHA256
 The titlebar account entry, native Account page with Remember login checked, and
 native Model Hub page are visible; the official OpenCode process remains running.
 Private screenshots and accessibility evidence are retained outside Git.
-The app is at the account form awaiting the user's own login. Real OS secure storage,
-correct-password persistent login, application relaunch, multiple windows and
-authenticated native model changes require installed-app acceptance. No server
-was accessed over SSH and no production memory was modified in this change.
+At this initial activation, the app awaited the user's own login; persistent-login
+acceptance is recorded below. Multiple-window behavior, live sign-out cleanup and
+authenticated native model mutations still require installed-app acceptance.
+No server was accessed over SSH and no production memory was modified.
+
+### Provider-entry acceptance — 2026-10-16
+
+The provider settings now show one **ModelHub** entry and a Manage button, with no
+per-role provider rows or direct-provider connection section in the managed profile.
+59 related app tests, the app type check, production build and macOS arm64 package
+pass. The installed `app.asar` matches the new package:
+`0344f2523ff1e96bfd4c6c213348ce3d1493cadcd3cffafa532737b155103d0b`.
+
+The fork was closed, backed up, replaced and reopened under the user's existing
+replacement authorization; the official OpenCode process remained running. No
+password was entered by the agent. The user's previously saved login restored
+automatically after the full process restart. Manage opened native Hub settings,
+which displayed the signed-in account and both roles' current models from the
+authenticated management read. This accepts one real macOS encrypted-login restore,
+not every account failure or multi-window scenario. No model selection was saved.
+Private screenshots and accessibility state record both views outside the repository.
 
 ## Rollback
 
