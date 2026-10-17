@@ -16,6 +16,7 @@ import { useTabs } from "@/context/tabs"
 import { useServerSync } from "@/context/server-sync"
 import { SettingsModelHub } from "./modelhub"
 import { SettingsModelHubAccount } from "./modelhub-account"
+import { ModelHubExtensionsSection } from "./modelhub-extensions"
 
 export const DialogSettings: Component<{
   sessionID?: string
@@ -71,6 +72,14 @@ export const DialogSettings: Component<{
                       <Icon name="keyboard" />
                       {language.t("settings.tab.shortcuts")}
                     </TabsV2.Trigger>
+                    <TabsV2.Trigger value="skills">
+                      <Icon name="sliders" />
+                      {language.t("modelhub.extensions.skills")}
+                    </TabsV2.Trigger>
+                    <TabsV2.Trigger value="mcp">
+                      <Icon name="server" />
+                      {language.t("settings.mcp.title")}
+                    </TabsV2.Trigger>
                   </div>
                 </div>
 
@@ -111,6 +120,16 @@ export const DialogSettings: Component<{
         </TabsV2.Content>
         <TabsV2.Content value="shortcuts" class="settings-v2-panel">
           <SettingsKeybinds v2 />
+        </TabsV2.Content>
+        <TabsV2.Content value="skills" class="settings-v2-panel">
+          <div class="settings-v2-tab-body">
+            <ModelHubExtensionsSection kind="skills" />
+          </div>
+        </TabsV2.Content>
+        <TabsV2.Content value="mcp" class="settings-v2-panel">
+          <div class="settings-v2-tab-body">
+            <ModelHubExtensionsSection kind="mcp" />
+          </div>
         </TabsV2.Content>
         <TabsV2.Content value="servers" class="settings-v2-panel">
           <SettingsServersV2 />

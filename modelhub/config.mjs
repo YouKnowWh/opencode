@@ -39,7 +39,7 @@ export function desktopConfig(pluginPath) {
             description: "服务端角色；真实模型和人设由 Model Hub 管理。",
             permission: { task: { "*": "deny", [`${role}-explore`]: "ask", [`${role}-worker`]: "ask" } },
             prompt:
-              "角色身份和基础人设由 Model Hub 注入。需要上文时先 memory_search 再 memory_read。memory_propose 仅提交待审核候选。不要创建开发服务器、watch 或后台进程。",
+              "角色身份和基础人设由 Model Hub 注入。优先使用当前会话已有上下文；仅在需要上下文之外的长期信息时调用 memory_search。检索摘要足够时直接回答，只有需要细节才调用 memory_read。memory_propose 仅提交待审核候选。不要创建开发服务器、watch 或后台进程。",
           },
         ]),
       ),

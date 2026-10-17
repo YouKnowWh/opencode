@@ -3,6 +3,15 @@ import { dict as en } from "./en"
 type Keys = keyof typeof en
 
 export const dict = {
+  "modelhub.extensions.localDescription": "配置保存在这台电脑上，Skills 和 MCP 均不需要登录 Model Hub。",
+  "modelhub.extensions.localMcp": "本地命令",
+  "modelhub.extensions.command": "命令与参数（JSON 数组）",
+  "modelhub.extensions.environment": "环境变量（可选 JSON 对象）",
+  "modelhub.extensions.headers": "请求头（可选 JSON 对象）",
+  "modelhub.extensions.mcpHelp":
+    '远程 MCP 支持 HTTPS 和本机 HTTP 地址，可通过请求头配置 Basic 或 Bearer 鉴权。本地命令填写 JSON 数组，例如 ["node", "/path/to/mcp.mjs"]。修改在下次启动客户端时生效。',
+  "modelhub.extensions.invalid":
+    "无法读取或保存本地扩展。请检查目录、名称是否重复及 JSON 字段，然后重试；设置也可能已被其他窗口更新。",
   "modelhub.extensions.title": "项目与扩展",
   "modelhub.extensions.project": "共享项目规则",
   "modelhub.extensions.projectDescription":

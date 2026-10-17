@@ -1,10 +1,11 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { mkdtempSync, rmSync } from "node:fs"
+import { mkdtempSync, rmSync, mkdirSync, symlinkSync } from "node:fs"
 import { tmpdir } from "node:os"
 import path from "node:path"
 import ModelHub from "./plugin.mjs"
 import { RoleBindings } from "./bindings.mjs"
+import { workspaceIdentity } from "./workspace.mjs"
 
 test("same-session handoff keeps headers stable and each memory tool uses its executing role", async () => {
   const root = mkdtempSync(path.join(tmpdir(), "modelhub-plugin-"))
@@ -18,10 +19,15 @@ test("same-session handoff keeps headers stable and each memory tool uses its ex
     })
     const seen = []
     globalThis.fetch = async (url, options) => {
-      seen.push({ url, authorization: options.headers.Authorization, body: JSON.parse(options.body) })
+      seen.push({
+        url,
+        authorization: options.headers.Authorization,
+        workspace: options.headers["X-Workspace-ID"],
+        body: JSON.parse(options.body),
+      })
       return new Response(JSON.stringify({ refs: [] }))
     }
-    const hooks = await ModelHub()
+    const hooks = await ModelHub({ directory: root, worktree: root })
     for (const role of ["arona", "prana", "arona"]) {
       await hooks["chat.message"](
         { sessionID: "ses_handoff" },
@@ -37,6 +43,7 @@ test("same-session handoff keeps headers stable and each memory tool uses its ex
       )
       assert.equal(output.headers["X-Session-ID"], "ses_handoff")
       assert.equal(output.headers["X-Request-Purpose"], "chat")
+      assert.equal(output.headers["X-Workspace-ID"], workspaceIdentity(root, root))
     }
     const output = { headers: {} }
     await hooks["chat.headers"](
@@ -47,7 +54,7 @@ test("same-session handoff keeps headers stable and each memory tool uses its ex
     assert.equal(new RoleBindings(root).get("ses_handoff"), "arona")
     for (const role of ["prana", "arona"])
       await hooks.tool.memory_search.execute(
-        { query: "test", role: "forged" },
+        { query: "test", role: "forged", workspace_id: "forged" },
         { agent: role, sessionID: "ses_handoff", extra: { model: { providerID: `modelhub-${role}`, id: role } } },
       )
     assert.deepEqual(
@@ -55,6 +62,7 @@ test("same-session handoff keeps headers stable and each memory tool uses its ex
       ["Bearer sk-test-prana", "Bearer sk-test-arona"],
     )
     assert.ok(seen.every((x) => !("role" in x.body)))
+    assert.ok(seen.every((x) => x.workspace === workspaceIdentity(root, root) && !("workspace_id" in x.body)))
     await assert.rejects(
       hooks.tool.memory_search.execute({ query: "test" }, { agent: "build", sessionID: "ses_handoff" }),
     )
@@ -114,6 +122,27 @@ test("same-session handoff keeps headers stable and each memory tool uses its ex
       if (saved[name] === undefined) delete process.env[name]
       else process.env[name] = saved[name]
     }
+    rmSync(root, { recursive: true, force: true })
+  }
+})
+
+test("workspace IDs follow the actual project root, including symlinks and non-Git folders", () => {
+  const root = mkdtempSync(path.join(tmpdir(), "modelhub-workspace-"))
+  try {
+    const project = path.join(root, "project")
+    mkdirSync(path.join(project, "nested"), { recursive: true })
+    const other = path.join(root, "other")
+    mkdirSync(other)
+    symlinkSync(project, path.join(root, "link"))
+    const identity = workspaceIdentity(project, project)
+    assert.match(identity, /^ws_[0-9a-f]{64}$/)
+    assert.equal(workspaceIdentity(path.join(project, "nested"), project), identity)
+    assert.equal(workspaceIdentity(path.join(root, "link"), project), identity)
+    assert.equal(workspaceIdentity(project, path.parse(project).root), identity)
+    assert.notEqual(workspaceIdentity(other, project), identity)
+    assert.equal(workspaceIdentity(), undefined)
+    assert.ok(!identity.includes(project))
+  } finally {
     rmSync(root, { recursive: true, force: true })
   }
 })

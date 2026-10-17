@@ -1,7 +1,7 @@
-export type ModelHubExtensions = {
+import type { ExtensionSettings } from "../../../../modelhub/extensions.mjs"
+
+export type ModelHubExtensions = ExtensionSettings & {
   revision: string
-  skillsPaths: string[]
-  mcp: { name: string; url: string; enabled: boolean }[]
 }
 export type ModelHubExtensionsAPI = {
   get(): Promise<ModelHubExtensions>

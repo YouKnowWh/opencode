@@ -159,7 +159,7 @@ const main = Effect.gen(function* () {
     process.env.XDG_STATE_HOME = join(root, "state")
     return root
   })()
-  app.setName(MODELHUB_BUILD ? "OpenCode Model Hub" : app.isPackaged ? APP_NAMES[CHANNEL] : "OpenCode Dev")
+  app.setName(MODELHUB_BUILD ? "OpenCode" : app.isPackaged ? APP_NAMES[CHANNEL] : "OpenCode Dev")
   app.setAppUserModelId(appId)
   app.setPath(
     "userData",

@@ -1,8 +1,12 @@
-# OpenCode Model Hub fork
+# OpenCode with Model Hub
 
 This opt-in desktop fork is based on upstream OpenCode **v1.19.0**
 (`733b2c627e5aec39cb33cc22373bdce33053ef2c`). The upstream MIT license remains
 unchanged. `origin` is the personal fork; `upstream` is `anomalyco/opencode`.
+The visible application name is **OpenCode**. Its independent app ID, credential
+storage and project history paths are retained. The new package is
+`packages/desktop/dist/mac-arm64/OpenCode.app`; keep the separately installed
+official client when choosing an installation destination.
 This fork is independently maintained and is not produced by or affiliated with
 the OpenCode team. Compare `modelhub-desktop` against the pinned `modelhub-base`
 branch; use that same base for a future PR, not the moving upstream `dev`.
@@ -125,7 +129,7 @@ MODELHUB_BUILD=1 OPENCODE_CHANNEL=dev CSC_IDENTITY_AUTO_DISCOVERY=false bun x --
 ```
 
 These commands do not start dev servers or watch tasks. Copy the resulting
-`dist/mac-arm64/OpenCode Model Hub.app` only after the running fork has exited.
+`dist/mac-arm64/OpenCode.app` only after the running fork has exited.
 Do not replace or restart the official OpenCode app. Local builds are unsigned
 and unnotarized; this is not an official signed release.
 
@@ -234,6 +238,38 @@ backups are retained privately and are not included in the repository.
 
 
 ## Shared projects and agent tools
+
+Skills and MCP have separate entries under the local desktop settings. They do
+not use the Hub account, server model configuration or role memory libraries.
+Add existing Skills folders, enable/disable/remove MCP connections, or configure
+an explicit local command as a JSON array. Remote endpoints support HTTPS and
+loopback HTTP; optional request headers support Basic/Bearer authentication and
+are stored only in the private local extensions file. The header editor is masked.
+Do not place credentials in an endpoint URL or command arguments. OAuth remains
+available for endpoints without custom headers. Local MCP subprocess environments
+clear the Hub model keys; this does not sandbox a trusted local tool's filesystem.
+Saving applies on the next client start and never interrupts an active task.
+
+The server avoids adding its private memory tool loop when a client already
+provides both `memory_search` and `memory_read`. This requires the corresponding
+infrastructure change; the client alone does not deploy that behavior. Real MCP
+authentication and latency acceptance remain separate from offline configuration
+tests and the package build. The current running app has not been replaced.
+
+Chat, auxiliary title calls and memory tools carry the same workspace partition
+and their originating session ID. The workspace is a SHA-256 of the real project
+root; subfolders and symlinks resolve to that root, while non-Git folders use the
+opened directory. No local path is transmitted. Distinct checkouts or paths are
+distinct workspaces; this is a retrieval partition, not an authorization token.
+The server still authenticates every call with the executing role's credential.
+Titles label an existing session and never identify unrelated sessions by text.
+
+The matching server update scopes recent summaries, task evidence and verification
+questions to that workspace. Approved long-term preferences stay shared within
+the same role. Old clients without workspace metadata use a client-local unassigned
+partition. Existing server history is not guessed into a new project, so new
+workspace queries do not automatically recover those old shallow records. This
+requires both client and server updates; it is not active in the running app yet.
 
 Open the same project folder as Codex; project files and AGENTS.md do not need a
 migration. The clients keep separate conversation and credential stores. Existing

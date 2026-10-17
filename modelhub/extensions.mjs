@@ -24,24 +24,73 @@ export function validateExtensions(value) {
     if (
       !entry ||
       typeof entry !== "object" ||
-      Object.keys(entry).some((key) => !["name", "url", "enabled"].includes(key)) ||
       !/^[a-zA-Z0-9_-]{1,64}$/.test(entry.name) ||
       names.has(entry.name) ||
-      typeof entry.url !== "string" ||
-      entry.url.length > 4096 ||
       typeof entry.enabled !== "boolean"
     )
       throw new Error("Invalid MCP entry")
-    const url = new URL(entry.url)
-    if (url.protocol !== "https:" || url.username || url.password || url.search || url.hash)
-      throw new Error("MCP requires an HTTPS endpoint without embedded credentials")
     names.add(entry.name)
-    return { name: entry.name, url: url.href, enabled: entry.enabled }
+    if (entry.type === "local") {
+      if (
+        Object.keys(entry).some((key) => !["name", "type", "command", "environment", "enabled"].includes(key)) ||
+        !Array.isArray(entry.command) ||
+        !entry.command.length ||
+        entry.command.length > 64 ||
+        entry.command.some((arg) => typeof arg !== "string" || arg.includes("\0") || arg.length > 4096) ||
+        !entry.command[0].trim()
+      )
+        throw new Error("Invalid local MCP command")
+      return {
+        name: entry.name,
+        type: "local",
+        command: entry.command,
+        enabled: entry.enabled,
+        ...(entry.environment === undefined ? {} : { environment: stringMap(entry.environment, true) }),
+      }
+    }
+    if (
+      Object.keys(entry).some((key) => !["name", "type", "url", "headers", "enabled"].includes(key)) ||
+      (entry.type !== undefined && entry.type !== "remote") ||
+      typeof entry.url !== "string" ||
+      entry.url.length > 4096
+    )
+      throw new Error("Invalid remote MCP entry")
+    const url = new URL(entry.url)
+    const loopback = ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname)
+    if (
+      (url.protocol !== "https:" && !(url.protocol === "http:" && loopback)) ||
+      url.username ||
+      url.password ||
+      url.search ||
+      url.hash
+    )
+      throw new Error("MCP requires an HTTPS endpoint without embedded credentials")
+    return {
+      name: entry.name,
+      url: url.href,
+      enabled: entry.enabled,
+      ...(entry.headers === undefined ? {} : { headers: stringMap(entry.headers, false) }),
+    }
   })
   const result = { skillsPaths: [...new Set(value.skillsPaths)], mcp }
   if (Buffer.byteLength(JSON.stringify(result, null, 2)) > 65536)
     throw new Error("Extension settings exceed the size limit")
   return result
+}
+
+function stringMap(value, environment) {
+  if (!value || typeof value !== "object" || Array.isArray(value) || Object.keys(value).length > 32)
+    throw new Error("Invalid MCP options")
+  for (const [key, text] of Object.entries(value)) {
+    if (
+      !(environment ? /^[A-Za-z_][A-Za-z0-9_]*$/ : /^[!#$%&'*+.^_`|~0-9A-Za-z-]+$/).test(key) ||
+      typeof text !== "string" ||
+      text.length > 4096 ||
+      /[\0\r\n]/.test(text)
+    )
+      throw new Error("Invalid MCP option")
+  }
+  return value
 }
 
 function privateFile(file) {

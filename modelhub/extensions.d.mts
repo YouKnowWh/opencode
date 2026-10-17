@@ -1,6 +1,9 @@
 export type ExtensionSettings = {
   skillsPaths: string[]
-  mcp: { name: string; url: string; enabled: boolean }[]
+  mcp: (
+    | { name: string; type?: "remote"; url: string; headers?: Record<string, string>; enabled: boolean }
+    | { name: string; type: "local"; command: string[]; environment?: Record<string, string>; enabled: boolean }
+  )[]
 }
 export function validateExtensions(value: unknown): ExtensionSettings
 export function loadExtensions(file?: string): ExtensionSettings

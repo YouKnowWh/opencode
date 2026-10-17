@@ -123,8 +123,8 @@ function getConfig() {
     return {
       ...getBase("ai.modelhub.opencode"),
       appId: "ai.modelhub.opencode",
-      productName: "OpenCode Model Hub",
-      protocols: { name: "OpenCode Model Hub", schemes: ["modelhub-opencode"] },
+      productName: "OpenCode",
+      protocols: { name: "OpenCode", schemes: ["modelhub-opencode"] },
       publish: null,
       extraResources: [
         ...(getBase("ai.modelhub.opencode").extraResources ?? []),
