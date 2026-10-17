@@ -22,7 +22,7 @@ export class HubClient {
     this.key = key
     this.fetcher = fetcher
   }
-  async call(operation, body, sessionID, signal) {
+  async call(operation, body, sessionID, signal, workspaceID) {
     if (!["search", "read", "candidates"].includes(operation)) throw new Error("不支持的记忆操作")
     checkKey(this.key)
     if (!sessionID) throw new Error("缺少会话来源")
@@ -38,6 +38,7 @@ export class HubClient {
           "Content-Type": "application/json",
           "X-Session-ID": sessionID,
           "X-Request-Purpose": "auxiliary",
+          ...(workspaceID ? { "X-Workspace-ID": workspaceID } : {}),
         },
         // Client input can never replace role, identity, purpose or authorization.
         body: JSON.stringify(

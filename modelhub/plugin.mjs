@@ -4,6 +4,7 @@ import { loadExtensions } from "./extensions.mjs"
 import { tool } from "@opencode-ai/plugin"
 import { HubClient, checkKey } from "./hub-client.mjs"
 import { RoleBindings, modelRole } from "./bindings.mjs"
+import { workspaceIdentity } from "./workspace.mjs"
 
 function executionRole(ctx) {
   const role = modelRole(ctx.extra?.model)
@@ -13,6 +14,7 @@ function executionRole(ctx) {
 }
 
 export default async function ModelHub(input = {}) {
+  const workspace = workspaceIdentity(input.directory, input.worktree)
   const instructions = []
   if (input.directory && input.worktree) {
     const root = realpathSync(input.worktree === path.parse(input.worktree).root ? input.directory : input.worktree)
@@ -37,7 +39,7 @@ export default async function ModelHub(input = {}) {
   )
   const invoke = (op) => async (args, ctx) => {
     const role = executionRole(ctx)
-    return clients[role].call(op, args, ctx.sessionID, ctx.abort)
+    return clients[role].call(op, args, ctx.sessionID, ctx.abort, workspace)
   }
   return {
     config: async (config) => {
@@ -95,6 +97,7 @@ export default async function ModelHub(input = {}) {
       if (!input.sessionID) throw new Error("缺少会话来源")
       Object.assign(output.headers, {
         "X-Session-ID": input.sessionID,
+        ...(workspace ? { "X-Workspace-ID": workspace } : {}),
         "X-Request-Purpose": ["title", "summary", "compaction", `${role}-explore`, `${role}-worker`].includes(
           input.agent,
         )
