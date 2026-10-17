@@ -50,7 +50,27 @@ export default async function ModelHub(input = {}) {
       config.mcp = {
         ...config.mcp,
         ...Object.fromEntries(
-          extensions.mcp.map((entry) => [entry.name, { type: "remote", url: entry.url, enabled: entry.enabled }]),
+          extensions.mcp.map((entry) => {
+            const { name, ...settings } = entry
+            return [
+              name,
+              entry.type === "local"
+                ? {
+                    ...settings,
+                    environment: {
+                      ...entry.environment,
+                      MODELHUB_KEY: "",
+                      MODELHUB_ARONA_KEY: "",
+                      MODELHUB_PRANA_KEY: "",
+                    },
+                  }
+                : {
+                    ...settings,
+                    type: "remote",
+                    ...(Object.keys(entry.headers ?? {}).length ? { oauth: false } : {}),
+                  },
+            ]
+          }),
         ),
       }
     },

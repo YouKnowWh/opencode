@@ -15,7 +15,7 @@ test("Model Hub build has its own identity and no official installer feed", asyn
   if (old === undefined) delete process.env.MODELHUB_BUILD
   else process.env.MODELHUB_BUILD = old
   expect(config.appId).toBe("ai.modelhub.opencode")
-  expect(config.productName).toBe("OpenCode Model Hub")
+  expect(config.productName).toBe("OpenCode")
   expect(config.publish).toBeNull()
   expect(config.mac?.notarize).toBe(false)
 })

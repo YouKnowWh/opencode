@@ -1,6 +1,15 @@
 import { DESKTOP_NATIVE_ENGLISH } from "./desktop-native"
 
 export const dict = {
+  "modelhub.extensions.localDescription": "Saved on this computer. Skills and MCP do not require a Model Hub account.",
+  "modelhub.extensions.localMcp": "Local command",
+  "modelhub.extensions.command": "Command and arguments (JSON array)",
+  "modelhub.extensions.environment": "Environment variables (optional JSON object)",
+  "modelhub.extensions.headers": "Request headers (optional JSON object)",
+  "modelhub.extensions.mcpHelp":
+    'Remote MCP supports HTTPS and loopback HTTP. Use request headers for Basic or Bearer authentication. Local commands are explicit JSON arrays, for example ["node", "/path/to/mcp.mjs"]. Changes apply when this client next starts.',
+  "modelhub.extensions.invalid":
+    "Could not load or save local extensions. Check the paths, unique names and JSON fields, then retry. Another window may have changed these settings.",
   "modelhub.extensions.title": "Project and extensions",
   "modelhub.extensions.project": "Shared project rules",
   "modelhub.extensions.projectDescription":

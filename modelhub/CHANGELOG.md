@@ -15,6 +15,13 @@
 
 ## Unreleased
 
+- Display the desktop client as OpenCode while retaining its independent app ID and data.
+- Move Skills and MCP into separate local settings tabs that work without Hub login.
+- Add explicit local MCP commands, loopback HTTP and private request headers; do not
+  pass role model keys to MCP subprocess environments. Changes apply on next start.
+- Prefer the existing session context and read original memory evidence only when
+  search excerpts are insufficient.
+
 - Open existing Codex project folders without copying source files; load bounded
   project AGENTS.md while keeping managed routing isolated.
 - Recheck edit/write/patch inputs after approval, exclusively create new files,

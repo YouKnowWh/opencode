@@ -137,3 +137,59 @@ test("foreground helpers are role-bound and the review command retains the selec
   assert.equal(config.command.review.agent, undefined)
   assert.equal(config.command.review.subtask, undefined)
 })
+
+test("local MCP commands and authenticated endpoints remain local client configuration", async () => {
+  const root = realpathSync(mkdtempSync(path.join(tmpdir(), "modelhub-mcp-")))
+  const previous = process.env.MODELHUB_EXTENSIONS_FILE
+  const previousBindings = process.env.MODELHUB_BINDINGS_DIR
+  try {
+    process.env.MODELHUB_BINDINGS_DIR = root
+    process.env.MODELHUB_EXTENSIONS_FILE = path.join(root, "extensions.json")
+    saveExtensions(process.env.MODELHUB_EXTENSIONS_FILE, {
+      skillsPaths: [],
+      mcp: [
+        {
+          name: "private",
+          url: "https://example.com/mcp",
+          headers: { Authorization: "Basic test-only" },
+          enabled: true,
+        },
+        {
+          name: "local",
+          type: "local",
+          command: ["node", "/tmp/explicit-mcp.mjs"],
+          environment: { MODE: "test" },
+          enabled: false,
+        },
+        { name: "loopback", url: "http://127.0.0.1:8080/mcp", enabled: true },
+      ],
+    })
+    const hooks = await ModelHub()
+    const config = {}
+    await hooks.config(config)
+    assert.deepEqual(config.mcp.private.headers, { Authorization: "Basic test-only" })
+    assert.equal(config.mcp.private.oauth, false)
+    assert.deepEqual(config.mcp.local.command, ["node", "/tmp/explicit-mcp.mjs"])
+    assert.equal(config.mcp.local.enabled, false)
+    assert.deepEqual(config.mcp.local.environment, {
+      MODE: "test",
+      MODELHUB_KEY: "",
+      MODELHUB_ARONA_KEY: "",
+      MODELHUB_PRANA_KEY: "",
+    })
+    assert.equal(config.mcp.loopback.url, "http://127.0.0.1:8080/mcp")
+    for (const entry of [
+      { name: "bad", url: "http://example.com/mcp", enabled: true },
+      { name: "bad", url: "https://example.com", headers: { Authorization: "x\r\ny" }, enabled: true },
+      { name: "bad", type: "local", command: [], enabled: true },
+      { name: "bad", type: "local", command: ["node"], provider: {}, enabled: true },
+    ])
+      assert.throws(() => validateExtensions({ skillsPaths: [], mcp: [entry] }))
+  } finally {
+    if (previousBindings === undefined) delete process.env.MODELHUB_BINDINGS_DIR
+    else process.env.MODELHUB_BINDINGS_DIR = previousBindings
+    if (previous === undefined) delete process.env.MODELHUB_EXTENSIONS_FILE
+    else process.env.MODELHUB_EXTENSIONS_FILE = previous
+    rmSync(root, { recursive: true, force: true })
+  }
+})

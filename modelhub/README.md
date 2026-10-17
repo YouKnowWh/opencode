@@ -1,8 +1,12 @@
-# OpenCode Model Hub fork
+# OpenCode with Model Hub
 
 This opt-in desktop fork is based on upstream OpenCode **v1.19.0**
 (`733b2c627e5aec39cb33cc22373bdce33053ef2c`). The upstream MIT license remains
 unchanged. `origin` is the personal fork; `upstream` is `anomalyco/opencode`.
+The visible application name is **OpenCode**. Its independent app ID, credential
+storage and project history paths are retained. The new package is
+`packages/desktop/dist/mac-arm64/OpenCode.app`; keep the separately installed
+official client when choosing an installation destination.
 This fork is independently maintained and is not produced by or affiliated with
 the OpenCode team. Compare `modelhub-desktop` against the pinned `modelhub-base`
 branch; use that same base for a future PR, not the moving upstream `dev`.
@@ -234,6 +238,23 @@ backups are retained privately and are not included in the repository.
 
 
 ## Shared projects and agent tools
+
+Skills and MCP have separate entries under the local desktop settings. They do
+not use the Hub account, server model configuration or role memory libraries.
+Add existing Skills folders, enable/disable/remove MCP connections, or configure
+an explicit local command as a JSON array. Remote endpoints support HTTPS and
+loopback HTTP; optional request headers support Basic/Bearer authentication and
+are stored only in the private local extensions file. The header editor is masked.
+Do not place credentials in an endpoint URL or command arguments. OAuth remains
+available for endpoints without custom headers. Local MCP subprocess environments
+clear the Hub model keys; this does not sandbox a trusted local tool's filesystem.
+Saving applies on the next client start and never interrupts an active task.
+
+The server avoids adding its private memory tool loop when a client already
+provides both `memory_search` and `memory_read`. This requires the corresponding
+infrastructure change; the client alone does not deploy that behavior. Real MCP
+authentication and latency acceptance remain separate from offline configuration
+tests and the package build. The current running app has not been replaced.
 
 Open the same project folder as Codex; project files and AGENTS.md do not need a
 migration. The clients keep separate conversation and credential stores. Existing
